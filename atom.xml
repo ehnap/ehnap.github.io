@@ -60,11 +60,11 @@
       <category term="IT-Life" scheme="https://ehnap.me/categories/IT-Life/"/>
     
     
+      <category term="随笔" scheme="https://ehnap.me/tags/%E9%9A%8F%E7%AC%94/"/>
+    
       <category term="租房" scheme="https://ehnap.me/tags/%E7%A7%9F%E6%88%BF/"/>
     
       <category term="人生经验" scheme="https://ehnap.me/tags/%E4%BA%BA%E7%94%9F%E7%BB%8F%E9%AA%8C/"/>
-    
-      <category term="随笔" scheme="https://ehnap.me/tags/%E9%9A%8F%E7%AC%94/"/>
     
   </entry>
   
@@ -95,8 +95,8 @@
   
   <entry>
     <title>2018年度总结</title>
-    <link href="https://ehnap.me/2018/12/29/annual-2008/"/>
-    <id>https://ehnap.me/2018/12/29/annual-2008/</id>
+    <link href="https://ehnap.me/2018/12/29/annual-2018/"/>
+    <id>https://ehnap.me/2018/12/29/annual-2018/</id>
     <published>2018-12-28T18:14:19.000Z</published>
     <updated>2019-12-28T18:18:11.054Z</updated>
     
@@ -112,9 +112,9 @@
       <category term="IT-Life" scheme="https://ehnap.me/categories/IT-Life/"/>
     
     
-      <category term="人生经验" scheme="https://ehnap.me/tags/%E4%BA%BA%E7%94%9F%E7%BB%8F%E9%AA%8C/"/>
-    
       <category term="随笔" scheme="https://ehnap.me/tags/%E9%9A%8F%E7%AC%94/"/>
+    
+      <category term="人生经验" scheme="https://ehnap.me/tags/%E4%BA%BA%E7%94%9F%E7%BB%8F%E9%AA%8C/"/>
     
       <category term="年度总结" scheme="https://ehnap.me/tags/%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/"/>
     
