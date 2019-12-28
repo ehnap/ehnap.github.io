@@ -48,12 +48,12 @@
   <meta name="description" content="线程对于 Windows 编程人员来说，并不陌生，但是一直以来，我对它的了解也只是基本的使用层面。对于很多细节，也并不是很了解。这作为一个 Windows 客户端开发人员，可以说是非常尴尬了。所以，抽了一点时间，仔细梳理了一下线程相关的内容。顺便记录下来。">
 <meta name="keywords" content="Windows编程,Thread">
 <meta property="og:type" content="article">
-<meta property="og:title" content="【Windows Programming】浅谈 Thread">
+<meta property="og:title" content="浅谈 Windows 编程中的 Thread">
 <meta property="og:url" content="https:&#x2F;&#x2F;ehnap.me&#x2F;2018&#x2F;08&#x2F;21&#x2F;windows-shallow-thread&#x2F;index.html">
 <meta property="og:site_name" content="Harper Talk">
 <meta property="og:description" content="线程对于 Windows 编程人员来说，并不陌生，但是一直以来，我对它的了解也只是基本的使用层面。对于很多细节，也并不是很了解。这作为一个 Windows 客户端开发人员，可以说是非常尴尬了。所以，抽了一点时间，仔细梳理了一下线程相关的内容。顺便记录下来。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-03-11T09:58:55.981Z">
+<meta property="og:updated_time" content="2019-12-13T15:12:06.877Z">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="https://ehnap.me/2018/08/21/windows-shallow-thread/">
@@ -70,7 +70,7 @@
   };
 </script>
 
-  <title>【Windows Programming】浅谈 Thread | Harper Talk</title>
+  <title>浅谈 Windows 编程中的 Thread | Harper Talk</title>
   
 
 
@@ -232,7 +232,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          【Windows Programming】浅谈 Thread
+          浅谈 Windows 编程中的 Thread
         </h1>
 
         <div class="post-meta">
@@ -249,7 +249,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-03-11 17:58:55" itemprop="dateModified" datetime="2019-03-11T17:58:55+08:00">2019-03-11</time>
+                <time title="修改时间：2019-12-13 23:12:06" itemprop="dateModified" datetime="2019-12-13T23:12:06+08:00">2019-12-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -331,7 +331,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="/https:/ehnap.me/2018/08/21/windows-shallow-thread/" title="【Windows Programming】浅谈 Thread">https://ehnap.me/2018/08/21/windows-shallow-thread/</a>
+    <a href="/https:/ehnap.me/2018/08/21/windows-shallow-thread/" title="浅谈 Windows 编程中的 Thread">https://ehnap.me/2018/08/21/windows-shallow-thread/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -352,12 +352,12 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2018/08/20/windows-heap/" rel="prev" title="【Windows Programming】堆">
-      <i class="fa fa-chevron-left"></i> 【Windows Programming】堆
+    <a href="/2018/08/20/windows-heap/" rel="prev" title="浅谈 Windows 编程中的堆">
+      <i class="fa fa-chevron-left"></i> 浅谈 Windows 编程中的堆
     </a></div>
       <div class="post-nav-item">
-    <a href="/2018/08/26/windows-mt-md-diff/" rel="next" title="【Windows Programming】/MT、/MD 的区别">
-      【Windows Programming】/MT、/MD 的区别 <i class="fa fa-chevron-right"></i>
+    <a href="/2018/08/26/windows-mt-md-diff/" rel="next" title="说说 Windows 编程中 /MT、/MD 的区别">
+      说说 Windows 编程中 /MT、/MD 的区别 <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -413,7 +413,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -424,7 +424,7 @@
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">22</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -473,13 +473,13 @@
       <i class="fa fa-area-chart"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">74k</span>
+    <span title="站点总字数">79k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">2:14</span>
+    <span title="站点阅读时长">2:23</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
   </div>

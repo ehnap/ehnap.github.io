@@ -1,6 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>谈谈DPI、分辨率与缇</title>
+    <url>/2019/04/05/resolution-dpi-twips/</url>
+    <content><![CDATA[<p>在客户端开发的过程中免不了要接触的就是像素，屏幕分辨率，这些概念是比较常见的，但很多时候真的就只是用而已，并不知道他们到底是一种什么关系，想起之前做看图的时候，经常就会遇到一些很有意思的图片文件，那个时候就研究了一下这几个概念。近来突然想起，就记录一下。</p>
+<a id="more"></a>
+<h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><h3 id="分辨率"><a href="#分辨率" class="headerlink" title="分辨率"></a>分辨率</h3><p>先说这个最常见的概念，就是指有多少个像素，如果是屏幕分辨率，就是指屏幕有多少个像素。只不过通常提起屏幕分辨率都以宽*高的方式表达，类似 1366*768、1920*768 等等。</p>
+<h3 id="DPI"><a href="#DPI" class="headerlink" title="DPI"></a>DPI</h3><p>DPI (Dots Per Inch，每英寸点数)，这个点可以理解为像素数，即每英寸像素数。</p>
+<h3 id="缇"><a href="#缇" class="headerlink" title="缇"></a>缇</h3><p>这个概念，对于很多人是陌生的，但是实际上在做 WPS 的时候，会经常遇到一些有关于它的换算。其实它就是一种度量单位。1缇 = 0.05磅</p>
+<h3 id="磅"><a href="#磅" class="headerlink" title="磅"></a>磅</h3><p>一种度量单位。1磅 = 1/72英寸</p>
+<h2 id="一些计算"><a href="#一些计算" class="headerlink" title="一些计算"></a>一些计算</h2><blockquote>
+<p>1英寸 = 72磅 = 1440缇</p>
+</blockquote>
+<p>由这个转换可知，以上三个单位的长度是确定的，这也就知道为什么在办公文档中会选择用磅而不是像素来描述字号，因为……需要打印，打印的时候时一定要知道这个东西确切的长度。</p>
+<p>这就引发了下一个问题，屏幕上的1像素打印出来到底是多大。可以注意到的是像素本身是不跟现实中的物理量有什么联系的，但是有一个东西是有联系的，那就是 DPI，将英寸和像素联系起来了。</p>
+<p>那 DPI 这个值又是怎么来的呢？很多人只知道 Windows 下 DPI 一般是96， 打印是300 。但是并不知道这个值怎么来的。这就要看像素怎么来的，对于电脑来说，屏幕分辨率就是像素信息。所以就把屏幕分辨率也串起来了</p>
+<p>这里以一个 23寸，屏幕分辨率为 1920*1080的显示器 为例：sqrt(1920^2^+1080^2^) / 23 ≈ 95.77 ≈ 96。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><strong>缇</strong>是一个绝对的概念，无论在地球上的哪个地方，缇的长度都是绝对的；<strong>DPI</strong> 是一个可以自己设置的，每英寸的像素数；<strong>屏幕分辨率</strong>也是可以自己设置的，代表了屏幕上的像素点数。</p>
+<h3 id="DPI-有什么用"><a href="#DPI-有什么用" class="headerlink" title="DPI 有什么用"></a>DPI 有什么用</h3><h4 id="屏幕-DPI"><a href="#屏幕-DPI" class="headerlink" title="屏幕 DPI"></a>屏幕 DPI</h4><p>对于客户端开发来说，在系统层面，是无法准确知道用户的电脑屏幕是多大的，对于客户端，只能感知屏幕有多少个像素。那如果只是根据像素做开发，用户买的高分屏就全都炸了，一个15寸的笔记本，但是是2k屏幕，在用户的机器上就会看你的软件无比的小，因为同样屏幕的大小，高分屏的像素更多。而你的软件是固定像素大小的。</p>
+<p>但是如果你根据上边的公式算一下，其实不难算出，这种高分屏的 DPI 是要比 96 大的，如果细心观察，高分屏默认选择的 DPI 也不是标准 DPI 而是放大的，其实就是因为它比 96 要大而已，因为有这个值，就可以对用户电脑屏幕的状况做到心里有数了。通常做法是，看是 96 的多少倍，对自己的软件内部元素做相应倍数放大，这就是高分屏适配的一般做法</p>
+<h4 id="图片-DPI"><a href="#图片-DPI" class="headerlink" title="图片 DPI"></a>图片 DPI</h4><p>而对于某个图片设置 DPI 的作用则是控制图片打印出来的大小。对于在电脑上显示图片的大多数软件来说，修改 DPI 是不影响图片在软件里看到的大小的，因为它的像素没有变。但是相同像素大小的图片，不同 DPI，它们打印出来大小就截然不同了，因为在这里就要根据 DPI 换算它们的实际大小，才能准确的打印在纸上，这就跟 DPI 有关了。</p>
+]]></content>
+      <categories>
+        <category>Programming</category>
+      </categories>
+      <tags>
+        <tag>Windows编程</tag>
+        <tag>DPI</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>跑断腿的租房过程杂谈</title>
     <url>/2019/03/23/it-life-tenement/</url>
     <content><![CDATA[<p>工作搞定之后，便开始了让人烦恼的看房租房的流程之中。这次比以往都要艰难，相隔一小时车程的两个地点，跑断腿这个形容词真的难以形容。整个过程历时三天，看了将近十套房子。过程中倒也积累了一些人生经验。</p>
@@ -31,9 +60,9 @@
         <category>IT-Life</category>
       </categories>
       <tags>
-        <tag>随笔</tag>
         <tag>租房</tag>
         <tag>人生经验</tag>
+        <tag>随笔</tag>
       </tags>
   </entry>
   <entry>
@@ -85,6 +114,68 @@
       <tags>
         <tag>Qt</tag>
         <tag>源码分析</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>2018年度总结</title>
+    <url>/2018/12/29/annual-2008/</url>
+    <content><![CDATA[<p>正值19和20年交替之际，我做了一个决定，打算每年都做一个年度报告，记录这一年的年度事件与感悟。18年的记忆还在，就顺手补上了，所以这篇文章其实是在19年末写的。但为了保证文章的顺序，还是觉得把他放在18年的归档中，比较妥当，所以将文章的时间改前了一年。</p>
+<a id="more"></a>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>2018年变化之大，说是我人生中的一个重要节点也不为过。我一直觉得2018年这一年的经历可能比我之前七八年的经历还丰富。</p>
+<h2 id="离职"><a href="#离职" class="headerlink" title="离职"></a>离职</h2><h3 id="一直在累积的工作负面情绪"><a href="#一直在累积的工作负面情绪" class="headerlink" title="一直在累积的工作负面情绪"></a>一直在累积的工作负面情绪</h3><p>到现在我都还记得离职之前的那段日子，用我当时自己这样评价自己，我已经不适合这个团队了，我的负面情绪太重了，觉得工作没意思，没前途，没冲劲。在 WPS 我没有好的需求可以接，打杂的需求学不到东西，觉得自从不做 WPS看图 (现在叫的 WPS图片 )之后，一直在维护 PDF2WORD 插件，天天跟新西兰老铁对接 SDK 的问题，没有任何技术上的提升，再加上一直不满意的薪资，实际上负面情绪已经非常严重了。而且在 WPS 做了两年多(算上实习就三年多)，一路走来，按说自己技术肯定是有了提升，但是实际上我对自己越来越不自信，对自己的水平产生了严重的怀疑，害怕、恐惧，觉得自己脑子不够灵光。感觉是不是除了 WPS 也没别的地方能去了，又不甘心。这种情绪，随着一直工作下去，一直就在累积，得不到任何释放和消除。</p>
+<h3 id="异地恋"><a href="#异地恋" class="headerlink" title="异地恋"></a>异地恋</h3><p>2016年12月2日，一个妹纸走进了我的世界，坦率地说，我从没有想过，她会给我的生活带来巨大的改变，甚至重塑了我的爱情观，但事实就是如此。一直到2017年末整整一年的异地恋，而且这中间又发生了难以言说的事情，耗费了我太多的精力。我又在工作，异地恋的距离之远，让我感到非常无力。所以其实在18年的春节已经开始在谋划换地方工作了。当时就决定是裸辞，顺便休整一下，考个驾照，也多准备一下。</p>
+<h3 id="公司搬迁"><a href="#公司搬迁" class="headerlink" title="公司搬迁"></a>公司搬迁</h3><p>2017年10月份，公司正式搬到唐家的金山软件园的新楼，空气中导出充斥着甲醛，但公司也并没有什么好的防护措施，也算是一个小小的不满吧。</p>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><p>总之，2018年3月24日我从 WPS 正式离职。没有下家，也没有任何口头 offer，就这样辞职了，收拾了在广州上学和在珠海生活的这几年的东西，能卖的出二手，或者送人，不舍得卖，卖不出去的，打包寄回了家里。</p>
+<h2 id="考驾照"><a href="#考驾照" class="headerlink" title="考驾照"></a>考驾照</h2><p>4月份开始学习开车，从报名到拿证，一共43天，感觉也算是很快了</p>
+<h2 id="找工作"><a href="#找工作" class="headerlink" title="找工作"></a>找工作</h2><p>5月份拿到驾照，就做了计划，准备准备简历，复习一下很久没看过的一些面试相关的东西。6月份去北京看看工作机会。在家里投了几个，电话里聊了一下，得到一个二面通知的时候，就正式买了去北京的车票，在北京找工。住在通州的亲戚家里，每天到西二旗来回五个小时车程，两周拿到了三个 offer 。事实上都是前一周的 offer，后一周基本上面试都很少了，而且大厂一个面试邀请都都没有，毕竟不是金三银四，金九银十。没有大厂的 offer，薪水给的很勉强，有一个甚至因为当时没接，后来再去的时候直接当面砍了价格。也正是因为这个，让我感到技术的廉价，让我萌生了考研的想法，而且女朋友也在准备考研，又想跟女朋友呆在一起，我一气之下拒了这仅有的三个 offer，离开北京又回了家。实际上如果那时的我是2019年的我，我应该很容易判断，考研这个决定是否靠谱，但事实是，我没有考虑太多，就做了决定。也或者说，心里可能想着考不上也不亏。不得不说，裸辞让人胆子变得更大，裸辞一时爽，裸辞时间越长就越爽。</p>
+<h2 id="考研"><a href="#考研" class="headerlink" title="考研"></a>考研</h2><p>事实是到9月份，就没怎么准备，或者说是没准备，沉迷女色，“沉迷游戏”，之所以沉迷游戏做了引号，是因为在后边看来可能是坏事，也可能有好的收获。9月份开始，常规的看看课程，做笔记，做题，书是买了不少，也有做，中间又经历了分手，痛苦了一段时间。一直到11月份，攻略上说这个时候得开始模拟了，每天也是常规的做做模拟卷(数学)，但实际上按之前的复习状态，可想而知，这个时候确实开始有些发慌了。但还是按着这个节奏在搞，英语一直都是背单词，直到上考场模拟卷一套也没做过，英语考试前一天晚上我都还不知道题型都有啥……也是没谁了……计算机专业课把王道和天勤的选择撸了，发现工作两年多，还好，选择什么的还不虚。政治跟着肖秀荣所有选择撸了两遍。考试之前背了肖四，和一些所谓的秘密资料。最后英语61 政治56 专业课119 数学……还是不说了…… 如果跟专业课一样分，估计我已经上学了。</p>
+<h2 id="分手"><a href="#分手" class="headerlink" title="分手"></a>分手</h2><p>“求不得”可能才是生活的常态，只是我还不习惯。明明觉得遇上了一个有趣的人，也憧憬了很多，但也有很多的矛盾。就这样还是分开了，有爱没恨、只是遗憾。这段感情人对了，时间不合适了，很多事情都变的拧巴了，也没法重来了。</p>
+<h2 id="意外收获"><a href="#意外收获" class="headerlink" title="意外收获"></a>意外收获</h2><p>离职的时候，我一度认为我不聪明，脑子不灵活。玩游戏都没有别人玩的好，一无是处，找不到自己的优点，也没有自信。这一年我沉迷游戏，说来也可笑，其实倒也不是沉迷游戏本身，我只是想知道我到底是不是什么都做不好。</p>
+<h3 id="提升认知与自信"><a href="#提升认知与自信" class="headerlink" title="提升认知与自信"></a>提升认知与自信</h3><p>不管听起来是不是很可笑，亦或者像是打广告，但我确实是通过玩QQ飞车手游，提升了自己对未知的东西的认知能力。玩了大半年，排位上了星耀三，再回顾，发现对游戏的理解跟从前完全不一样。再加上在复习政治的过程中，真正的研究了一下马克思主义哲学。这种感觉仿佛一下子通透了。</p>
+<p>我对认知过程的理解和感悟可以用两个概念概括：</p>
+<blockquote>
+<p>否定之否定(哲学的基本规律之一)。它揭示了事物发展的前进性与曲折性的统一，表明了事物的发展不是直线式前进而是螺旋式上升的。</p>
+</blockquote>
+<blockquote>
+<p>《人间词话》：“古今之成大事业、大学问者，必经过三种之境界：‘昨夜西风凋碧树。独上高楼，望尽天涯路’。此第一境也。‘衣带渐宽终不悔，为伊消得人憔悴。’此第二境也。‘众里寻他千百度，蓦然回首，那人却在，灯火阑珊处’。此第三境也。”</p>
+</blockquote>
+<p>终于我也找到了自己的认知体系，算是一个意外收获，让我知道，我在各个方面的现有的认知水平，究竟是怎样的。而且游戏本身也让我觉得，只要花时间琢磨，我还是可以做的更好的，在一定程度上还是有一些自信的回升。</p>
+<h3 id="对裸辞的认识"><a href="#对裸辞的认识" class="headerlink" title="对裸辞的认识"></a>对裸辞的认识</h3><p>毕业之后一直在金山工作，没有去过别的公司，也没有面过别的公司，实际上在之前的时间里，裸辞是一个根本不敢想的东西。很难想象一年不工作，我觉得这在职场是致命的，在知乎看到了那么多人，那么多帖子，告诉你不要裸辞，但事实上，都是小马过河的故事。到底你能不能裸辞，只有你自己知道，至少对于我来说，无所畏惧了，因为我尝试过，也没有觉得多恐怖。我也敢于去追自己想要的东西，这比大部分人来说迈出了一大步，也算是一个意外收获。</p>
+<h3 id="重新为自己的技术估值"><a href="#重新为自己的技术估值" class="headerlink" title="重新为自己的技术估值"></a>重新为自己的技术估值</h3><p>在北京找工作，都觉得不太满意，虽然最后回家了，但实际上这段经历也是非常有用的，这对我估量市场行情有很大帮助。</p>
+<h3 id="价值观的重塑"><a href="#价值观的重塑" class="headerlink" title="价值观的重塑"></a>价值观的重塑</h3><p>事实上经历了2018年这几件事之后，我整个人是非常丧的。一度觉得自己走向自闭了。看到正在工作的小伙伴，赚的盆满钵满，实话实说，我是酸的。但可能有时候就是不破不立，走了极端不一定是坏事。后来我也终于想透了。只要人一进入职场，就浮躁了起来，整个人飘在天上，眼睛看着钱，看着周围的人赚多少钱，自己赚的多还是少。但一燥起来，就忘了本质，燥到只渴望钱，而不知道为什么渴望钱。</p>
+<p>失去了目的和本质之后，就转为单纯的贪婪，这就变得可怕，原因有二：</p>
+<ul>
+<li>一是贪婪无止境，会让人变得盲目、无底线；</li>
+<li>二是当聚焦到钱上之后，做事变得不再纯粹，不够专注，就会做的不够好。</li>
+</ul>
+<p>当我明白了这两点之后，很多东西就放下了，慢下来了。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>回顾2018的关键词：离职、找工作失利、考研失利、分手。仿佛没有一个是让人觉得向好的，但是在19年开年的时候我写下了一段话，确是非常阳光的，我想可能就是因为这些意外收获，我觉得很有价值。所以2018年是试错的一年，我觉得值得。</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><h3 id="年度书籍"><a href="#年度书籍" class="headerlink" title="年度书籍"></a>年度书籍</h3><ul>
+<li>《天勤计算机考研2019数据结构高分笔记 》</li>
+<li>《天勤数据结构高分笔记之习题精析扩展》</li>
+<li><a href="https://book.douban.com/subject/30258763/" target="_blank" rel="noopener">《肖秀荣2019考研政治命题人1000题（上册试题、下册解析）》</a></li>
+<li><a href="https://book.douban.com/subject/30269999/" target="_blank" rel="noopener">《肖秀荣2019考研政治命题人知识点精讲精练》</a></li>
+<li><a href="https://book.douban.com/subject/30326003/" target="_blank" rel="noopener">《肖秀荣2019考研政治命题人讲真题（上、下册）》</a> - 10%</li>
+<li><a href="https://book.douban.com/subject/30391616/" target="_blank" rel="noopener">《肖秀荣2019考研政治命题人冲刺8套卷》</a></li>
+<li><a href="https://book.douban.com/subject/30396091/" target="_blank" rel="noopener">《肖秀荣2019考研政治命题人终极预测4套卷》</a></li>
+<li>《王道考研2019计算机考研(数据结构、操作系统、计组、计网)》</li>
+<li>《高数叔总复习笔记(高数、线代、概率论)》</li>
+<li>《2019张宇考研数学真题大全解(数一)》</li>
+<li>《2019石磊考研政治保命32分》</li>
+<li>《2019李正元范培华考研数学历年试题解析数学一》</li>
+<li><a href="https://book.douban.com/subject/30765054/" target="_blank" rel="noopener">《2019恋练有词》</a></li>
+<li><a href="https://book.douban.com/subject/26677354/" target="_blank" rel="noopener">《数学女孩》</a></li>
+<li><a href="https://book.douban.com/subject/11610490/" target="_blank" rel="noopener">《数学与人类文明》</a></li>
+<li><a href="https://book.douban.com/subject/20494401/" target="_blank" rel="noopener">《费马大定理-一个困惑了世间智者358年的谜》</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>IT-Life</category>
+      </categories>
+      <tags>
+        <tag>人生经验</tag>
+        <tag>随笔</tag>
+        <tag>年度总结</tag>
       </tags>
   </entry>
   <entry>
@@ -497,7 +588,7 @@
       </tags>
   </entry>
   <entry>
-    <title>【Windows Programming】/MT、/MD 的区别</title>
+    <title>说说 Windows 编程中 /MT、/MD 的区别</title>
     <url>/2018/08/26/windows-mt-md-diff/</url>
     <content><![CDATA[<p>Windows 编程中无法绕开的编译开关 <strong>/MT</strong>、<strong>/MD</strong> 其实还有一个 <strong>/LD</strong>，不过后者很少见。之前对这些一直没有一个清晰的概念，所以就查阅了相关资料。算是对这块有了一个粗浅的认识。</p>
 <p>其实最直观的资料还属 <a href="https://docs.microsoft.com/en-us/cpp/build/reference/md-mt-ld-use-run-time-library?view=vs-2017" target="_blank" rel="noopener">MSDN</a></p>
@@ -513,7 +604,7 @@
       </tags>
   </entry>
   <entry>
-    <title>【Windows Programming】浅谈 Thread</title>
+    <title>浅谈 Windows 编程中的 Thread</title>
     <url>/2018/08/21/windows-shallow-thread/</url>
     <content><![CDATA[<p>线程对于 Windows 编程人员来说，并不陌生，但是一直以来，我对它的了解也只是基本的使用层面。对于很多细节，也并不是很了解。这作为一个 Windows 客户端开发人员，可以说是非常尴尬了。所以，抽了一点时间，仔细梳理了一下线程相关的内容。顺便记录下来。</p>
 <a id="more"></a>
@@ -546,7 +637,7 @@
       </tags>
   </entry>
   <entry>
-    <title>【Windows Programming】堆</title>
+    <title>浅谈 Windows 编程中的堆</title>
     <url>/2018/08/20/windows-heap/</url>
     <content><![CDATA[<p>提起堆，大部分人都不陌生，但是其实很多人也不见得就很了解。我见过的大部分人，对堆的理解其实还停留在，全局的一种内存，速度没有栈快，不会自动销毁，需要开发人员自己管理。这其实不怪 Windows，怪就怪面试人员水平参差不齐，五百年了，问堆还是，堆栈究竟有什么区别。然后在中国这个应试教育横行的地方，也必然是各种针对性的突击，问八百个人都是上边的答案。然而，对于 Windows 的堆，作为一个开发人员，这些了解显然是不够的。</p>
 <a id="more"></a>
@@ -710,6 +801,7 @@
 <h1 id="开发工具"><a href="#开发工具" class="headerlink" title="开发工具"></a>开发工具</h1><ul>
 <li><a href="https://www.ieinspector.com/" target="_blank" rel="noopener">HTTPAnalyzer</a> Windows下简单好用的抓包工具</li>
 <li><a href="https://docs.microsoft.com/zh-cn/sysinternals/downloads/process-explorer" target="_blank" rel="noopener">Process Explorer</a> 进程观察利器</li>
+<li><a href="https://github.com/processhacker/processhacker" target="_blank" rel="noopener">Process Hacker</a> 比 PE 更好用的东东</li>
 <li><a href="https://docs.microsoft.com/zh-cn/sysinternals/downloads/procmon" target="_blank" rel="noopener">Process Monitor</a> 进程监视利器</li>
 <li><a href="https://docs.microsoft.com/zh-cn/sysinternals/downloads/" target="_blank" rel="noopener">SysinternalsSuite</a> 微软出品的系统工具合集</li>
 <li><a href="http://www.torchsoft.com/en/rw_information.html" target="_blank" rel="noopener">Registry Workshop</a> 加强版注册表，历史记录跳转功能超级好用</li>
@@ -782,7 +874,7 @@
       </tags>
   </entry>
   <entry>
-    <title>【Windows Programming】字符编码</title>
+    <title>Windows 编程中的字符编码</title>
     <url>/2018/07/09/windows-character-encoding/</url>
     <content><![CDATA[<p>经常在写代码的时候需要处理宽字符，ASCII 字符，在代码中看到 wchar、char 等等。一般都是处理一个方法的时候发现需要的是某字符串，然后这边有什么字符串，之后查一个转换方法。还有对于 Unicode 、ANSI 这些不太分得清，所以花了一点时间看了一看。做个小结。</p>
 <a id="more"></a>
@@ -824,8 +916,8 @@
         <category>Programming</category>
       </categories>
       <tags>
-        <tag>字符编码</tag>
         <tag>Windows编程</tag>
+        <tag>字符编码</tag>
       </tags>
   </entry>
   <entry>

@@ -48,12 +48,12 @@
   <meta name="description" content="Windows 编程中无法绕开的编译开关 &#x2F;MT、&#x2F;MD 其实还有一个 &#x2F;LD，不过后者很少见。之前对这些一直没有一个清晰的概念，所以就查阅了相关资料。算是对这块有了一个粗浅的认识。 其实最直观的资料还属 MSDN &#x2F;MT、&#x2F;MD 其实一言以蔽之，就是运行时的库是静态链接还是动态链接。&#x2F;MTd、&#x2F;MDd 是他们的 debug 版本。所以他们的选择最直接的就是影响生成文件的大小。静态链接显然会大，动">
 <meta name="keywords" content="Windows编程,Runtime">
 <meta property="og:type" content="article">
-<meta property="og:title" content="【Windows Programming】&#x2F;MT、&#x2F;MD 的区别">
+<meta property="og:title" content="说说 Windows 编程中 &#x2F;MT、&#x2F;MD 的区别">
 <meta property="og:url" content="https:&#x2F;&#x2F;ehnap.me&#x2F;2018&#x2F;08&#x2F;26&#x2F;windows-mt-md-diff&#x2F;index.html">
 <meta property="og:site_name" content="Harper Talk">
 <meta property="og:description" content="Windows 编程中无法绕开的编译开关 &#x2F;MT、&#x2F;MD 其实还有一个 &#x2F;LD，不过后者很少见。之前对这些一直没有一个清晰的概念，所以就查阅了相关资料。算是对这块有了一个粗浅的认识。 其实最直观的资料还属 MSDN &#x2F;MT、&#x2F;MD 其实一言以蔽之，就是运行时的库是静态链接还是动态链接。&#x2F;MTd、&#x2F;MDd 是他们的 debug 版本。所以他们的选择最直接的就是影响生成文件的大小。静态链接显然会大，动">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-03-11T07:58:40.327Z">
+<meta property="og:updated_time" content="2019-12-13T15:12:06.877Z">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="https://ehnap.me/2018/08/26/windows-mt-md-diff/">
@@ -70,7 +70,7 @@
   };
 </script>
 
-  <title>【Windows Programming】/MT、/MD 的区别 | Harper Talk</title>
+  <title>说说 Windows 编程中 /MT、/MD 的区别 | Harper Talk</title>
   
 
 
@@ -232,7 +232,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          【Windows Programming】/MT、/MD 的区别
+          说说 Windows 编程中 /MT、/MD 的区别
         </h1>
 
         <div class="post-meta">
@@ -249,7 +249,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-03-11 15:58:40" itemprop="dateModified" datetime="2019-03-11T15:58:40+08:00">2019-03-11</time>
+                <time title="修改时间：2019-12-13 23:12:06" itemprop="dateModified" datetime="2019-12-13T23:12:06+08:00">2019-12-13</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -314,7 +314,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="/https:/ehnap.me/2018/08/26/windows-mt-md-diff/" title="【Windows Programming】&#x2F;MT、&#x2F;MD 的区别">https://ehnap.me/2018/08/26/windows-mt-md-diff/</a>
+    <a href="/https:/ehnap.me/2018/08/26/windows-mt-md-diff/" title="说说 Windows 编程中 &#x2F;MT、&#x2F;MD 的区别">https://ehnap.me/2018/08/26/windows-mt-md-diff/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -335,8 +335,8 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2018/08/21/windows-shallow-thread/" rel="prev" title="【Windows Programming】浅谈 Thread">
-      <i class="fa fa-chevron-left"></i> 【Windows Programming】浅谈 Thread
+    <a href="/2018/08/21/windows-shallow-thread/" rel="prev" title="浅谈 Windows 编程中的 Thread">
+      <i class="fa fa-chevron-left"></i> 浅谈 Windows 编程中的 Thread
     </a></div>
       <div class="post-nav-item">
     <a href="/2018/09/05/book-djt-js-1/" rel="next" title="【读书笔记】大教堂与集市-黑客圈简史">
@@ -395,7 +395,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">33</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -406,7 +406,7 @@
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
-        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-count">22</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -455,13 +455,13 @@
       <i class="fa fa-area-chart"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">74k</span>
+    <span title="站点总字数">79k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">2:14</span>
+    <span title="站点阅读时长">2:23</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
   </div>
