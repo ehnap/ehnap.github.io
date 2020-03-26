@@ -45,32 +45,30 @@
   };
 </script>
 
-  <meta name="description" content="特点 二叉树 同节点左右子树高度差不超过1">
-<meta name="keywords" content="数据结构">
-<meta property="og:type" content="article">
-<meta property="og:title" content="AVL树(自平衡二叉树)">
-<meta property="og:url" content="https:&#x2F;&#x2F;ehnap.me&#x2F;2017&#x2F;11&#x2F;06&#x2F;avl-tree&#x2F;index.html">
+  <meta name="description" content="人生如水，冷暖自知。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Harper Talk">
+<meta property="og:url" content="https:&#x2F;&#x2F;ehnap.me&#x2F;page&#x2F;5&#x2F;index.html">
 <meta property="og:site_name" content="Harper Talk">
-<meta property="og:description" content="特点 二叉树 同节点左右子树高度差不超过1">
+<meta property="og:description" content="人生如水，冷暖自知。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-12-13T15:12:06.860Z">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://ehnap.me/2017/11/06/avl-tree/">
+<link rel="canonical" href="https://ehnap.me/page/5/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome: false,
-    isPost: true,
+    isHome: true,
+    isPost: false,
     isPage: false,
     isArchive: false
   };
 </script>
 
-  <title>AVL树(自平衡二叉树) | Harper Talk</title>
+  <title>Harper Talk</title>
   
 
 
@@ -215,11 +213,11 @@
             
 
   <div class="posts-expand">
-      
+        
   
   
-  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ehnap.me/2017/11/06/avl-tree/">
+  <article itemscope itemtype="http://schema.org/Article" class="post-block home" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ehnap.me/2014/12/14/su-dong-po-zhuan/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/touxiang.jpg">
@@ -232,7 +230,8 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          AVL树(自平衡二叉树)
+          
+            <a href="/2014/12/14/su-dong-po-zhuan/" class="post-title-link" itemprop="url">深夜读《苏东坡传》</a>
         </h1>
 
         <div class="post-meta">
@@ -242,7 +241,7 @@
               </span>
               <span class="post-meta-item-text">发表于</span>
 
-              <time title="创建时间：2017-11-06 21:37:14" itemprop="dateCreated datePublished" datetime="2017-11-06T21:37:14+08:00">2017-11-06</time>
+              <time title="创建时间：2014-12-14 01:36:21" itemprop="dateCreated datePublished" datetime="2014-12-14T01:36:21+08:00">2014-12-14</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
@@ -251,32 +250,14 @@
                 <span class="post-meta-item-text">更新于</span>
                 <time title="修改时间：2019-12-13 23:12:06" itemprop="dateModified" datetime="2019-12-13T23:12:06+08:00">2019-12-13</time>
               </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Programming/" itemprop="url" rel="index">
-                    <span itemprop="name">Programming</span>
-                  </a>
-                </span>
-            </span>
 
-          
-            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-eye"></i>
-              </span>
-              <span class="post-meta-item-text">阅读次数：</span>
-              <span id="busuanzi_value_page_pv"></span>
-            </span><br>
+          <br>
             <span class="post-meta-item" title="本文字数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>569</span>
+              <span>319</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
@@ -295,80 +276,19 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
-<li>二叉树</li>
-<li>同节点左右子树高度差不超过1<a id="more"></a>
-<h2 id="复杂度"><a href="#复杂度" class="headerlink" title="复杂度"></a>复杂度</h2></li>
-<li>插入、查找、删除均为O(logN)</li>
-</ul>
-<h2 id="节点数"><a href="#节点数" class="headerlink" title="节点数"></a>节点数</h2><ul>
-<li>最多(满二叉树) <code>2^h-1</code></li>
-<li>最少 <code>2^(h-1)</code></li>
-</ul>
-<h2 id="规则"><a href="#规则" class="headerlink" title="规则"></a>规则</h2><h3 id="旋转："><a href="#旋转：" class="headerlink" title="旋转："></a>旋转：</h3><ul>
-<li>左旋：节点的左旋，节点的右孩子指针指向节点右孩子的左孩子，节点的右孩子的左孩子指针指向节点。</li>
-<li>右旋：节点的右旋，节点的左孩子指针指向节点左孩子的右孩子，节点的左孩子的右孩子指针指向节点。</li>
-</ul>
-<h3 id="平衡因子："><a href="#平衡因子：" class="headerlink" title="平衡因子："></a>平衡因子：</h3><ul>
-<li>平衡因子=左子树高度-右子树高度</li>
-</ul>
-<p><strong>导致AVL Tree不平衡的几种类型及调整方法:</strong></p>
-<h3 id="插入："><a href="#插入：" class="headerlink" title="插入："></a>插入：</h3><ul>
-<li>LL：节点的左(L)子树的左(L)子树因为存在非空子节点，导致与节点的右子树高度差超过1 <strong>(右旋)</strong></li>
-<li>LR：节点的左(L)子树的右(R)子树因为存在非空子节点，导致与节点的右子树高度差超过1 <strong>(先左旋再右旋)</strong></li>
-<li>RL：节点的右(R)子树的左(L)子树因为存在非空子节点，导致与节点的左子树高度差超过1 <strong>(先右旋再左旋)</strong></li>
-<li>RR：节点的右(R)子树的右(R)子树因为存在非空子节点，导致与节点的左子树高度差超过1 <strong>(左旋)</strong></li>
-</ul>
-<h3 id="删除："><a href="#删除：" class="headerlink" title="删除："></a>删除：</h3><ul>
-<li>删除叶子结点，删除之后判断一下是否平衡</li>
-<li>删除只带有左子树或右子树的节点，直接把子树节点接上就行了</li>
-<li>删除带有左右子树的节点，找其左子树的最大节点或者是其右子树的最小节点交换值，然后删除被交换节点(规则跟删除叶子结点一样了)。选择左子树的最大节点还是右子树最小节点可以根据左右子树高度选择，优先选高的子树，这样更快趋于平衡。</li>
-</ul>
+          <p>林语堂的《苏东坡传》，之前是没听说过的，也没人推荐过。买书的时候，为了凑优惠，选了一部作者名气比较大的。可以精神上接近下国学大师。翻开之后却觉得甚是难读，林语堂在书中说：为一个人写传，就要对这个人够了解，因为林特别喜爱苏东坡，故参考了关于苏的各种资料，写了这本传记。</p>
+<p>可是他忽略了一点，越喜爱一个人，就越难对一个人作出客观的评价。只是翻看了两三章，都是溢美之词。失了客观的传记让我抵触情绪很大。这本书与其叫《苏东坡传》不如叫《苏东坡赞》，不知自己看过全书之后会不会对这种看法有所改变。</p>
+<p>但是回头想想，容不下别人的溢美之词，也许就是自己的心里太满，做不到无欲无求，也许自己本身就不够客观，这也是自己应该修炼的地方。真不知道什么时候能改改这脾气。</p>
 
+      
     </div>
 
     
     
     
-        
-
-<div>
-<ul class="post-copyright">
-  <li class="post-copyright-author">
-    <strong>本文作者： </strong>ehnap
-  </li>
-  <li class="post-copyright-link">
-    <strong>本文链接：</strong>
-    <a href="/https:/ehnap.me/2017/11/06/avl-tree/" title="AVL树(自平衡二叉树)">https://ehnap.me/2017/11/06/avl-tree/</a>
-  </li>
-  <li class="post-copyright-license">
-    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
-  </li>
-</ul>
-</div>
-
-
       <footer class="post-footer">
-          <div class="post-tags">
-              <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag"># 数据结构</a>
-          </div>
-
-        
-
-
-        
-    <div class="post-nav">
-      <div class="post-nav-item">
-    <a href="/2016/07/31/qt-source-win-qt-event/" rel="prev" title="【Qt源码笔记】Qt事件与Windows消息循环的联系">
-      <i class="fa fa-chevron-left"></i> 【Qt源码笔记】Qt事件与Windows消息循环的联系
-    </a></div>
-      <div class="post-nav-item">
-    <a href="/2017/11/12/centos7-shadowsocks/" rel="next" title="阿里云(CentOS7.4、专有网络)配置shadowsocks-server">
-      阿里云(CentOS7.4、专有网络)配置shadowsocks-server <i class="fa fa-chevron-right"></i>
-    </a></div>
-    </div>
+        <div class="post-eof"></div>
       </footer>
-    
   </article>
   
   
@@ -376,10 +296,15 @@
 
   </div>
 
+  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/page/4/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span>
+  </nav>
+
+
 
           </div>
           
-    <div class="comments" id="gitalk-container"></div>
 
         </div>
           
@@ -404,7 +329,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#特点"><span class="nav-number">1.</span> <span class="nav-text">特点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#复杂度"><span class="nav-number">2.</span> <span class="nav-text">复杂度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#节点数"><span class="nav-number">3.</span> <span class="nav-text">节点数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#规则"><span class="nav-number">4.</span> <span class="nav-text">规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#旋转："><span class="nav-number">4.1.</span> <span class="nav-text">旋转：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#平衡因子："><span class="nav-number">4.2.</span> <span class="nav-text">平衡因子：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#插入："><span class="nav-number">4.3.</span> <span class="nav-text">插入：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#删除："><span class="nav-number">4.4.</span> <span class="nav-text">删除：</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -561,23 +485,6 @@
 
   
 
-<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
-
-<script>
-  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
-    var gitalk = new Gitalk({
-      clientID: '483d334cd96bc22b4b19',
-      clientSecret: '83a8e4a8a19bb5ed328f484588b091067ef40a9f',
-      repo: 'ehnap.github.io',
-      owner: 'ehnap',
-      admin: ['ehnap'],
-      id: 'a115889a9d46a7e80d6612f551a22f6f',
-        language: 'zh-CN',
-      distractionFreeMode: 'true'
-    });
-    gitalk.render('gitalk-container');
-  }, window.Gitalk);
-</script>
 
 </body>
 </html>
