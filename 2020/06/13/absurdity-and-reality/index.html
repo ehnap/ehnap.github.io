@@ -45,18 +45,18 @@
   };
 </script>
 
-  <meta name="description" content="线程对于 Windows 编程人员来说，并不陌生，但是一直以来，我对它的了解也只是基本的使用层面。对于很多细节，也并不是很了解。这作为一个 Windows 客户端开发人员，可以说是非常尴尬了。所以，抽了一点时间，仔细梳理了一下线程相关的内容。顺便记录下来。">
-<meta name="keywords" content="Windows编程,Thread">
+  <meta name="description" content="上个月读了加缪的《局外人》(金祎的译本)。买书之前调查了一下各种译本以及同一个译者的不同版本，最终还是选了金祎译的这本，除了有翻译上的原因，还有一个理由是，这本书除了有小说内容之外，还在后边附上了：后记、导读、加缪的演讲稿，这些内容着实让我对这部小说有了更深刻的认识。当然对于存在主义，我现在还是知之甚少的……">
+<meta name="keywords" content="随笔,Harper说">
 <meta property="og:type" content="article">
-<meta property="og:title" content="浅谈 Windows 编程中的 Thread">
-<meta property="og:url" content="https:&#x2F;&#x2F;ehnap.me&#x2F;2018&#x2F;08&#x2F;21&#x2F;windows-shallow-thread&#x2F;index.html">
+<meta property="og:title" content="荒诞的尽头也许是真实……">
+<meta property="og:url" content="https:&#x2F;&#x2F;ehnap.me&#x2F;2020&#x2F;06&#x2F;13&#x2F;absurdity-and-reality&#x2F;index.html">
 <meta property="og:site_name" content="Harper Talk">
-<meta property="og:description" content="线程对于 Windows 编程人员来说，并不陌生，但是一直以来，我对它的了解也只是基本的使用层面。对于很多细节，也并不是很了解。这作为一个 Windows 客户端开发人员，可以说是非常尴尬了。所以，抽了一点时间，仔细梳理了一下线程相关的内容。顺便记录下来。">
+<meta property="og:description" content="上个月读了加缪的《局外人》(金祎的译本)。买书之前调查了一下各种译本以及同一个译者的不同版本，最终还是选了金祎译的这本，除了有翻译上的原因，还有一个理由是，这本书除了有小说内容之外，还在后边附上了：后记、导读、加缪的演讲稿，这些内容着实让我对这部小说有了更深刻的认识。当然对于存在主义，我现在还是知之甚少的……">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-12-13T15:12:06.877Z">
+<meta property="og:updated_time" content="2020-06-12T16:39:05.718Z">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://ehnap.me/2018/08/21/windows-shallow-thread/">
+<link rel="canonical" href="https://ehnap.me/2020/06/13/absurdity-and-reality/">
 
 
 <script id="page-configurations">
@@ -70,7 +70,7 @@
   };
 </script>
 
-  <title>浅谈 Windows 编程中的 Thread | Harper Talk</title>
+  <title>荒诞的尽头也许是真实…… | Harper Talk</title>
   
 
 
@@ -219,7 +219,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://ehnap.me/2018/08/21/windows-shallow-thread/">
+    <link itemprop="mainEntityOfPage" href="https://ehnap.me/2020/06/13/absurdity-and-reality/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/uploads/touxiang.jpg">
@@ -232,7 +232,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          浅谈 Windows 编程中的 Thread
+          荒诞的尽头也许是真实……
         </h1>
 
         <div class="post-meta">
@@ -241,24 +241,18 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
+              
 
-              <time title="创建时间：2018-08-21 15:56:14" itemprop="dateCreated datePublished" datetime="2018-08-21T15:56:14+08:00">2018-08-21</time>
+              <time title="创建时间：2020-06-13 00:33:44 / 修改时间：00:39:05" itemprop="dateCreated datePublished" datetime="2020-06-13T00:33:44+08:00">2020-06-13</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-12-13 23:12:06" itemprop="dateModified" datetime="2019-12-13T23:12:06+08:00">2019-12-13</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Programming/" itemprop="url" rel="index">
-                    <span itemprop="name">Programming</span>
+                  <a href="/categories/IT-Life/" itemprop="url" rel="index">
+                    <span itemprop="name">IT-Life</span>
                   </a>
                 </span>
             </span>
@@ -276,14 +270,14 @@
                 <i class="fa fa-file-word-o"></i>
               </span>
                 <span class="post-meta-item-text">本文字数：</span>
-              <span>1.7k</span>
+              <span>2.9k</span>
             </span>
             <span class="post-meta-item" title="阅读时长">
               <span class="post-meta-item-icon">
                 <i class="fa fa-clock-o"></i>
               </span>
                 <span class="post-meta-item-text">阅读时长 &asymp;</span>
-              <span>3 分钟</span>
+              <span>5 分钟</span>
             </span>
 
         </div>
@@ -295,27 +289,27 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>线程对于 Windows 编程人员来说，并不陌生，但是一直以来，我对它的了解也只是基本的使用层面。对于很多细节，也并不是很了解。这作为一个 Windows 客户端开发人员，可以说是非常尴尬了。所以，抽了一点时间，仔细梳理了一下线程相关的内容。顺便记录下来。</p>
+        <p>上个月读了加缪的《局外人》(金祎的译本)。买书之前调查了一下各种译本以及同一个译者的不同版本，最终还是选了金祎译的这本，除了有翻译上的原因，还有一个理由是，这本书除了有小说内容之外，还在后边附上了：后记、导读、加缪的演讲稿，这些内容着实让我对这部小说有了更深刻的认识。当然对于存在主义，我现在还是知之甚少的……</p>
 <a id="more"></a>
-<h2 id="一些常识"><a href="#一些常识" class="headerlink" title="一些常识"></a>一些常识</h2><ul>
-<li>基本状态：就绪，执行，阻塞</li>
-<li>堆公有、栈私有</li>
-<li>创建和结束所需要的系统开销：小</li>
-<li>没有自己的地址空间<h2 id="创建线程"><a href="#创建线程" class="headerlink" title="创建线程"></a>创建线程</h2>在 Windows 下创建一个线程，很自然的会想到<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span></pre></td><td class="code"><pre><span class="line">CreateThread(</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">2</span></pre></td><td class="code"><pre><span class="line">    _In_opt_ LPSECURITY_ATTRIBUTES lpThreadAttributes,</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">3</span></pre></td><td class="code"><pre><span class="line">    _In_ SIZE_T dwStackSize,</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">4</span></pre></td><td class="code"><pre><span class="line">    _In_ LPTHREAD_START_ROUTINE lpStartAddress,</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">5</span></pre></td><td class="code"><pre><span class="line">    _In_opt_ __drv_aliasesMem LPVOID lpParameter,</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">6</span></pre></td><td class="code"><pre><span class="line">    _In_ DWORD dwCreationFlags,</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">7</span></pre></td><td class="code"><pre><span class="line">    _Out_opt_ LPDWORD lpThreadId</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">8</span></pre></td><td class="code"><pre><span class="line">    );</span></pre></td></tr></table></figure>
-这个方法可以说对 Windows 应用开发人员并不陌生。当使用这个方法的时候，在平时使用的时候，比较多关注的就是<code>lpStartAddress</code>、<code>lpParameter</code>。这是线程函数的入口以及参数。创建一个新线程之后，将会从这里开始执行。</li>
-</ul>
-<p>但是对于 C++ 来说，其实有另一个方法</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span></pre></td><td class="code"><pre><span class="line">_ACRTIMP <span class="keyword">uintptr_t</span> __cdecl _beginthreadex(</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">2</span></pre></td><td class="code"><pre><span class="line">    _In_opt_  <span class="keyword">void</span>*                    _Security,</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">3</span></pre></td><td class="code"><pre><span class="line">    _In_      <span class="keyword">unsigned</span>                 _StackSize,</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">4</span></pre></td><td class="code"><pre><span class="line">    _In_      _beginthreadex_proc_type _StartAddress,</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">5</span></pre></td><td class="code"><pre><span class="line">    _In_opt_  <span class="keyword">void</span>*                    _ArgList,</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">6</span></pre></td><td class="code"><pre><span class="line">    _In_      <span class="keyword">unsigned</span>                 _InitFlag,</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">7</span></pre></td><td class="code"><pre><span class="line">    _Out_opt_ <span class="keyword">unsigned</span>*                _ThrdAddr</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">8</span></pre></td><td class="code"><pre><span class="line">    );</span></pre></td></tr></table></figure>
-<p>在这里，<code>_StartAddress</code>、<code>_ArgList</code>则跟上述那两个参数是类似的作用。<br>然而在这两个方法的选择中，《Windows 核心编程》早有公断。</p>
-<p>根据作者的说法是选择<code>_beginthreadex</code>替代<code>CreateThread</code>。而原因则要从<code>_beginthreadex</code>的实现上说起。</p>
-<p><code>_beginthreadex</code>在 Windows 下的实现也是调用了<code>CreateThread</code>，毕竟在 Windows 系统中，只认这一种创建线程的方式。但是在这之前，它还会做一些额外工作。创建一个线程数据块( tiddata )，然后将入口和参数都保存到数据块中，最后还要把数据块保存在 TLS 中。之后还要初始化一个 SEH 帧，用来处理运行时产生的错误。然后在线程结束之前，释放掉 tiddata 。那这样看，确实要比<code>CreateThread</code>多做一些事情。</p>
-<p>话说回来，如果不做这些事情，当然就会有问题。比较直接的问题就是内存泄漏。原因是，如果使用<code>CreateThread</code>创建线程，当调用一些运行库函数的时候，会检查这个 tiddata 。如果发现没有，则会自己搞出一个，而这个在线程结束的时候，就不会被正确释放，就出现了内存泄漏。</p>
-<p>类似<code>errno</code>这种运行库函数，需要反应正确的错误信息，如果不记录线程相关信息，则会在多线程的时候出现错误，所以一个 tiddata 是必要的，这也说明了为什么这个 tiddata 无论什么情况都会存在。</p>
-<p>所以综上所述，在创建线程是，应该选择<code>_beginthreadex</code>。</p>
-<p>关于更详细的<code>_beginthreadex</code>内容，参考 <a href="https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/beginthread-beginthreadex?view=vs-2017" target="_blank" rel="noopener">_beginthread, _beginthreadex</a> 这篇文章是最好了</p>
-<h2 id="TLS"><a href="#TLS" class="headerlink" title="TLS"></a>TLS</h2><p>上边说的 TLS。可谓是线程中不可缺少的东西。因为线程之间是共享地址空间的，所以当有一些每个线程自己所需要的数据的时候，就不那么方便。而 TLS 就是用来解决这个问题。存储在 TLS 中的数据，对于每个线程之间，是互相隔离的。</p>
-<h2 id="结束线程"><a href="#结束线程" class="headerlink" title="结束线程"></a>结束线程</h2><p>尽可能的让线程执行完自然结束。不到万不得已的时候，都不要使用<code>ExitThread</code>或者是<code>_endthreadex</code>。因为会使主调线程不正常返回，导致构造的 C++ 对象都不会析构；如果使用<code>ExitThread</code>还会造成 tiddata 不会被释放。</p>
-<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>关于多线程编程其实坑不算少，唯有对 Thread 多一些了解，才能写出更高质量的代码。</p>
+
+<p>《局外人》，传说中的荒诞文学……，有点震撼。那种感觉大概就是觉得很厉害，但是当我想写点什么的时候，却什么都写不出来，再加上工作一直很忙，这篇读书笔记上个月读了加缪的《局外人》(金祎的译本)。买书之前调查了一下各种译本以及同一个译者的不同版本，最终还是选了金祎译的这本，除了有翻译上的原因，还有一个理由是，这本书除了有小说内容之外，还在后边附上了：后记、导读、加缪的演讲稿，这些内容着实让我对这部小说有了更深刻的认识。当然对于存在主义，我现在还是知之甚少的……</p>
+<p>《局外人》，传说中的荒诞文学……，有点震撼。那种感觉大概就是觉得很厉害，但是当我想写点什么的时候，却什么都写不出来，再加上工作一直很忙，这篇读书笔记就“难产”了。这段时间里，我仔细琢磨它让我震撼的点究竟是什么，如果非要找到一个理由，那大概就是这篇小说有点短，剧情也一点都不跌宕起伏，但是会给我无穷的拷问。也许我在看其他小说的时候，会花 80% 的时间看剧情，花 20% 的时间去思考，但对于这本《局外人》，我想应该是倒过来的。</p>
+<p>我甚至不想对这本书的内容做任何的介绍，因为并没有什么介绍能胜过完整的读一遍。如果非要找到一个故事简介，我想用加缪自己的话说是最合适的，“《局外人》讲述的是一个毫无英雄主义的自命不凡的、只是愿意为真实赴死的男人的故事。”</p>
+<p>我在纸面上看到的主人公默尔索，是一个不参与游戏……徘徊在社会边缘……拒绝撒谎的人，但也正因为如此，他最终走向了死亡。而导致他走向死亡的根本原因，“可能”是因为他没有在母亲的葬礼上哭泣。(加缪也曾经这样介绍《局外人》的主题：在我们的社会里，任何不在母亲葬礼上哭泣的人，都有可能被处以死刑)；而透过这层纸，我看到的默尔索是直面自己的、“绝对”而又“真实”的人。</p>
+<p>而正是因为他的“绝对”与“真实”，有些人会认为默尔索是一个被社会抛弃的人，也是加缪所说的“局外人”。他抵抗这个社会设定的规则，原因就是因为他拒绝说谎。加缪的说法是，说谎并不一定意味着说假话，而是当你讲述的不仅是真相的时候，就已经是在说谎了。默尔索抵抗的正是这种“广义的”说谎。</p>
+<p>实际上我也一直在思考，这个世界是否能存在绝对的客观。而现在看来，默尔索身上具有的真实，跟我所想象的绝对的客观是非常相似的。当我们一直在寻求客观的时候，突然出现了一个默尔索一样的人，或许我们并不会认为他很真实，反而会认为他是异类，加缪用这本书给了我一个很好的诠释。更让我感到肃然起敬的是，他可以把这些东西赤裸裸的落到纸面上去思考。</p>
+<p>这本书让我清晰地感受到：荒诞的尽头是真实。但我隐约也有一种感觉，如果人不能巧妙地游走在荒诞与真实之间，而是走向一个极端，在这个社会也必然是难以生存的。这就是芸芸众生之中的那些“局外人”的现状。即使像默尔索，最终也走向了一个妥协。正如书中所说：『为了让一切有个了结，为了使我不感到那么孤独，我还是希望我被处决的那天有很多人来观看，希望他们用仇恨的喊声来欢迎我。』</p>
+<p>跳出小说中的内容，通过导读的一些东西，让我对加缪各种崇拜。他并不是那种，误打误撞，靠一部作品一炮走红的作家，而是掌握着自上而下的超强写作能力的作家，他对自己的作品有着清晰的架构，所有的作品内容都在他的掌控之中，看似内容没有关联的几部作品，实则诠释了他对某一内涵的完整解读，而这种解读又并非只是简单的扣住一个主题，而是有着清晰的层次划分的，这是我见过的少有的，不得不说他算是个写作的天才。</p>
+<p>最后用默尔索的一句话，也是全书唯一出现过“荒诞”一词的地方，来结束这篇笔记。</p>
+<p>『在我所度过的整个荒诞的人生中，从我未来的深处，一股昏暗的气息穿越尚未到来的岁月向我扑来，这股气息一路袭来，使别人向我建议的一切都变得毫无差别，未来的岁月并不比我已经度过的岁月更真实』就“难产”了。这段时间里，我仔细琢磨它让我震撼的点究竟是什么，如果非要找到一个理由，那大概就是这篇小说有点短，剧情也一点都不跌宕起伏，但是会给我无穷的拷问。也许我在看其他小说的时候，会花 80% 的时间看剧情，花 20% 的时间去思考，但对于这本《局外人》，我想应该是倒过来的。</p>
+<p>我甚至不想对这本书的内容做任何的介绍，因为并没有什么介绍能胜过完整的读一遍。如果非要找到一个故事简介，我想用加缪自己的话说是最合适的，“《局外人》讲述的是一个毫无英雄主义的自命不凡的、只是愿意为真实赴死的男人的故事。”</p>
+<p>我在纸面上看到的主人公默尔索，是一个不参与游戏……徘徊在社会边缘……拒绝撒谎的人，但也正因为如此，他最终走向了死亡。而导致他走向死亡的根本原因，“可能”是因为他没有在母亲的葬礼上哭泣。(加缪也曾经这样介绍《局外人》的主题：在我们的社会里，任何不在母亲葬礼上哭泣的人，都有可能被处以死刑)；而透过这层纸，我看到的默尔索是直面自己的、“绝对”而又“真实”的人。</p>
+<p>而正是因为他的“绝对”与“真实”，有些人会认为默尔索是一个被社会抛弃的人，也是加缪所说的“局外人”。他抵抗这个社会设定的规则，原因就是因为他拒绝说谎。加缪的说法是，说谎并不一定意味着说假话，而是当你讲述的不仅是真相的时候，就已经是在说谎了。默尔索抵抗的正是这种“广义的”说谎。</p>
+<p>实际上我也一直在思考，这个世界是否能存在绝对的客观。而现在看来，默尔索身上具有的真实，跟我所想象的绝对的客观是非常相似的。当我们一直在寻求客观的时候，突然出现了一个默尔索一样的人，或许我们并不会认为他很真实，反而会认为他是异类，加缪用这本书给了我一个很好的诠释。更让我感到肃然起敬的是，他可以把这些东西赤裸裸的落到纸面上去思考。</p>
+<p>这本书让我清晰地感受到：荒诞的尽头是真实。但我隐约也有一种感觉，如果人不能巧妙地游走在荒诞与真实之间，而是走向一个极端，在这个社会也必然是难以生存的。这就是芸芸众生之中的那些“局外人”的现状。即使像默尔索，最终也走向了一个妥协。正如书中所说：『为了让一切有个了结，为了使我不感到那么孤独，我还是希望我被处决的那天有很多人来观看，希望他们用仇恨的喊声来欢迎我。』</p>
+<p>跳出小说中的内容，通过导读的一些东西，让我对加缪各种崇拜。他并不是那种，误打误撞，靠一部作品一炮走红的作家，而是掌握着自上而下的超强写作能力的作家，他对自己的作品有着清晰的架构，所有的作品内容都在他的掌控之中，看似内容没有关联的几部作品，实则诠释了他对某一内涵的完整解读，而这种解读又并非只是简单的扣住一个主题，而是有着清晰的层次划分的，这是我见过的少有的，不得不说他算是个写作的天才。</p>
+<p>最后用默尔索的一句话，也是全书唯一出现过“荒诞”一词的地方，来结束这篇笔记。</p>
+<p>『在我所度过的整个荒诞的人生中，从我未来的深处，一股昏暗的气息穿越尚未到来的岁月向我扑来，这股气息一路袭来，使别人向我建议的一切都变得毫无差别，未来的岁月并不比我已经度过的岁月更真实』</p>
 
     </div>
 
@@ -331,7 +325,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>本文链接：</strong>
-    <a href="/https:/ehnap.me/2018/08/21/windows-shallow-thread/" title="浅谈 Windows 编程中的 Thread">https://ehnap.me/2018/08/21/windows-shallow-thread/</a>
+    <a href="/https:/ehnap.me/2020/06/13/absurdity-and-reality/" title="荒诞的尽头也许是真实……">https://ehnap.me/2020/06/13/absurdity-and-reality/</a>
   </li>
   <li class="post-copyright-license">
     <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/null" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
@@ -342,8 +336,8 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/Windows%E7%BC%96%E7%A8%8B/" rel="tag"># Windows编程</a>
-              <a href="/tags/Thread/" rel="tag"># Thread</a>
+              <a href="/tags/%E9%9A%8F%E7%AC%94/" rel="tag"># 随笔</a>
+              <a href="/tags/Harper%E8%AF%B4/" rel="tag"># Harper说</a>
           </div>
 
         
@@ -352,13 +346,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2018/08/20/windows-heap/" rel="prev" title="浅谈 Windows 编程中的堆">
-      <i class="fa fa-chevron-left"></i> 浅谈 Windows 编程中的堆
+    <a href="/2020/03/31/maugham-reading-notes/" rel="prev" title="一篇读《毛姆读书随笔》的随笔">
+      <i class="fa fa-chevron-left"></i> 一篇读《毛姆读书随笔》的随笔
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2018/08/26/windows-mt-md-diff/" rel="next" title="说说 Windows 编程中 /MT、/MD 的区别">
-      说说 Windows 编程中 /MT、/MD 的区别 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -397,7 +388,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#一些常识"><span class="nav-number">1.</span> <span class="nav-text">一些常识</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建线程"><span class="nav-number">2.</span> <span class="nav-text">创建线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TLS"><span class="nav-number">3.</span> <span class="nav-text">TLS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结束线程"><span class="nav-number">4.</span> <span class="nav-text">结束线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#后记"><span class="nav-number">5.</span> <span class="nav-text">后记</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -564,7 +554,7 @@
       repo: 'ehnap.github.io',
       owner: 'ehnap',
       admin: ['ehnap'],
-      id: '270447ed76e6b84793e1288db4da12ce',
+      id: 'b42c00a7e2d20637ab0f694fb96715b6',
         language: 'zh-CN',
       distractionFreeMode: 'true'
     });
