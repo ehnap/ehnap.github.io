@@ -45,15 +45,15 @@
   };
 </script>
 
-  <meta name="description" content="参考:  Building-Qt5-from-Git  Windows下自己准备自己想要的编译器。编译自己想要的Qt版本最近5.6出来了，有好多新的变化，第一时间准备尝鲜。我自己的是MSVC2015 Qt5.6">
+  <meta name="description" content="参考:  Building-Qt5-from-Git  Windows 下自己准备自己想要的编译器。编译自己想要的 Qt 版本最近 5.6 出来了，有好多新的变化，第一时间准备尝鲜。我自己的是 MSVC2015 Qt5.6">
 <meta name="keywords" content="C++,Qt">
 <meta property="og:type" content="article">
 <meta property="og:title" content="编译Qt">
 <meta property="og:url" content="https:&#x2F;&#x2F;ehnap.me&#x2F;2016&#x2F;01&#x2F;03&#x2F;build-qt&#x2F;index.html">
 <meta property="og:site_name" content="Harper Talk">
-<meta property="og:description" content="参考:  Building-Qt5-from-Git  Windows下自己准备自己想要的编译器。编译自己想要的Qt版本最近5.6出来了，有好多新的变化，第一时间准备尝鲜。我自己的是MSVC2015 Qt5.6">
+<meta property="og:description" content="参考:  Building-Qt5-from-Git  Windows 下自己准备自己想要的编译器。编译自己想要的 Qt 版本最近 5.6 出来了，有好多新的变化，第一时间准备尝鲜。我自己的是 MSVC2015 Qt5.6">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-12-13T15:12:06.861Z">
+<meta property="og:updated_time" content="2020-08-09T05:06:44.522Z">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="https://ehnap.me/2016/01/03/build-qt/">
@@ -244,13 +244,6 @@
 
               <time title="创建时间：2016-01-03 11:36:44" itemprop="dateCreated datePublished" datetime="2016-01-03T11:36:44+08:00">2016-01-03</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-12-13 23:12:06" itemprop="dateModified" datetime="2019-12-13T23:12:06+08:00">2019-12-13</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -299,7 +292,7 @@
 <ul>
 <li><a href="http://wiki.qt.io/Building_Qt_5_from_Git" target="_blank" rel="noopener">Building-Qt5-from-Git</a></li>
 </ul>
-<p>Windows下自己准备自己想要的编译器。编译自己想要的Qt版本<br>最近5.6出来了，有好多新的变化，第一时间准备尝鲜。<br>我自己的是MSVC2015 Qt5.6</p>
+<p>Windows 下自己准备自己想要的编译器。编译自己想要的 Qt 版本<br>最近 5.6 出来了，有好多新的变化，第一时间准备尝鲜。<br>我自己的是 MSVC2015 Qt5.6</p>
 <a id="more"></a>
 <p>首先要准备：</p>
 <ul>
@@ -307,14 +300,13 @@
 <li>Git</li>
 <li>python</li>
 </ul>
-<p>如果要是编译webkit的话，还需要icu套件，这次为了熟悉流程先不编这个，因为Qt5.6已经把webkit移除了，换成了webengine，官网的文档还没有更新，暂时还没研究</p>
+<p>如果要是编译webkit的话，还需要 icu 套件，这次为了熟悉流程先不编这个，因为 Qt5.6 已经把 webkit 移除了，换成了 webengine ，官网的文档还没有更新，暂时还没研究</p>
 <p><strong>一定要先装Perl再装Git，以免用了老的Git，会导致脚本失败</strong><br>而且安装Git的时候需要选择<strong>可以在cmd使用Git命令</strong>，不然就只能用Git自己带的那个命令行了<br>Qt的代码使用Git做版本管理，但是他的子库很多，每个模块都是单独的一个仓库，所以检出的时候为了避免麻烦则用Perl写成了脚本。</p>
 <p>为了方便的话，可以直接用VS的命令行，这样免了设置MSVC的环境了。<br>设置一些环境变量：</p>
-<blockquote>
-<p>SET _ROOT=C:\qt5<br>SET PATH=%_ROOT%\qtbase\bin;%_ROOT%\gnuwin32\bin;%PATH%<br>SET QMAKESPEC=win32-msvc2015<br>SET _ROOT=</p>
-</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span></pre></td><td class="code"><pre><span class="line">SET _ROOT=C:\qt5</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">2</span></pre></td><td class="code"><pre><span class="line">SET PATH=%_ROOT%\qtbase\bin;%_ROOT%\gnuwin32\bin;%PATH%</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">3</span></pre></td><td class="code"><pre><span class="line">SET QMAKESPEC=win32-msvc2015</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">4</span></pre></td><td class="code"><pre><span class="line">SET _ROOT=</span></pre></td></tr></table></figure>
+
 <ul>
-<li>注：_ROOT设置成自己检出Qt代码的目录(你检出代码之后再去设置这些也是可以的)，QMAKESPEC设置成自己用的编译器</li>
+<li>注：_ROOT设置成自己检出Qt代码的目录(你检出代码之后再去设置这些也是可以的)，QMAKESPEC 设置成自己用的编译器</li>
 </ul>
 <h3 id="取顶层仓库"><a href="#取顶层仓库" class="headerlink" title="取顶层仓库"></a>取顶层仓库</h3><blockquote>
 <p>git clone git://code.qt.io/qt/qt5.git</p>
@@ -442,7 +434,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -453,7 +445,7 @@
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
-        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-count">29</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -502,13 +494,13 @@
       <i class="fa fa-area-chart"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">104k</span>
+    <span title="站点总字数">109k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">3:10</span>
+    <span title="站点阅读时长">3:18</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
   </div>

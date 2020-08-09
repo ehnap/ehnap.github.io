@@ -53,7 +53,7 @@
 <meta property="og:site_name" content="Harper Talk">
 <meta property="og:description" content="最近恰好需要用 C++ 实现一个供 C# .NET 调用的模块，用dllexport导出符号的时候出现了一点问题，明明已经看到了导出符号，但是 .NET 在调用的时候，就是找不到方法。然后用 def 文件的方式导出符号就正常，突然对这两种方式的区别产生兴趣，之前一直没有研究过，就仔细了查阅一番。">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:updated_time" content="2019-12-28T16:24:13.062Z">
+<meta property="og:updated_time" content="2020-08-09T18:45:21.873Z">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="https://ehnap.me/2019/04/28/dll-export-function-way/">
@@ -244,13 +244,6 @@
 
               <time title="创建时间：2019-04-28 02:19:20" itemprop="dateCreated datePublished" datetime="2019-04-28T02:19:20+08:00">2019-04-28</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-calendar-check-o"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2019-12-29 00:24:13" itemprop="dateModified" datetime="2019-12-29T00:24:13+08:00">2019-12-29</time>
-              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -300,6 +293,7 @@
 <p>以导出名为 TESTFUNC 方法为例：</p>
 <h2 id="def-文件方式"><a href="#def-文件方式" class="headerlink" title="def 文件方式"></a>def 文件方式</h2><p>，正常在程序中定义方法，然后新建一个 .def 文件，内容类似</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span></pre></td><td class="code"><pre><span class="line">LIBRARY</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">2</span></pre></td><td class="code"><pre><span class="line">EXPORT</span></pre></td></tr><tr><td class="gutter"><pre><span class="line">3</span></pre></td><td class="code"><pre><span class="line">    TESTFUNC</span></pre></td></tr></table></figure>
+
 <p>在其他工程使用这个方法的时候需要头文件，然后在连接时指定 .def 文件目录。</p>
 <h2 id="dllexport方式"><a href="#dllexport方式" class="headerlink" title="dllexport方式"></a>dllexport方式</h2><p>在定义 TESTFUNC 方法时，在声明前加上 <code>__declspec(dllexport)</code>。</p>
 <h2 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h2><p>这里就不得不说导出符号在 DLL 中的形式。实际上对于 C++ 来说，当导出的时候，不会以原名导出，因为会加上一些符号字母后缀，实际上如果了解 C++ 的人，也会知道 C++ 在处理函数重载的时候，其实也用了这个套路，实际上编译之后就没有重载的概念了，而是根据参数生成了独一无二的方法名。</p>
@@ -319,8 +313,7 @@
 <p>话说回来，那也不可能每次都把<code>@</code>那些符号写对。所以会看到有时候导出的时候<code>_extern &quot;C&quot; _declspec(dllexport)</code>这样写，这是为了让函数以 C 的方式来编译，这样导出的方法就是没有那些符号的了，但这样有个问题，就是函数必须以 C 方式调用，而且也不能用来导出类对象，原因是显而易见的……</p>
 <p>其实当了解上边之后，不难发现，1、2才是我们最想要的，3就很局限。这样问题就来了，1、2两种方式又有什么区别呢：</p>
 <p>区别就在这个 .lib 上，如果在 C++ 或者 C 工程这个范围来说，确实没区别。但是假如调用工程不是 C++ 工程呢，他就是个 C# 工程呢，他是没办法用 .lib 的。</p>
-<p><strong>综上所述：.def 文件的方式才是最通用的做法</strong></p>
-<p>那回到我最初的问题，我的 C# 工程之所以在调用使用 <code>dllexport</code>导出的方法失败，就是因为，我没有写对真正的方法名(带一堆符号的那个)。而使用 .def 文件的话，就没有这个问题了。</p>
+<p><strong>综上所述：.def 文件的方式才是最通用的做法</strong>。那回到我最初的问题，我的 C# 工程之所以在调用使用 <code>dllexport</code>导出的方法失败，就是因为，我没有写对真正的方法名(带一堆符号的那个)。而使用 .def 文件的话，就没有这个问题了。</p>
 
     </div>
 
@@ -357,8 +350,8 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2019/04/15/windows-bcrypt-deadlock/" rel="prev" title="bcrypt死锁探秘">
-      <i class="fa fa-chevron-left"></i> bcrypt死锁探秘
+    <a href="/2019/04/15/windows-bcrypt-deadlock/" rel="prev" title="bcrypt 死锁探秘">
+      <i class="fa fa-chevron-left"></i> bcrypt 死锁探秘
     </a></div>
       <div class="post-nav-item">
     <a href="/2019/12/30/annual-2019/" rel="next" title="2019年度报告">
@@ -418,7 +411,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-count">47</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -429,7 +422,7 @@
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
-        <span class="site-state-item-count">26</span>
+        <span class="site-state-item-count">29</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -478,13 +471,13 @@
       <i class="fa fa-area-chart"></i>
     </span>
       <span class="post-meta-item-text">站点总字数：</span>
-    <span title="站点总字数">104k</span>
+    <span title="站点总字数">109k</span>
     <span class="post-meta-divider">|</span>
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
       <span class="post-meta-item-text">站点阅读时长 &asymp;</span>
-    <span title="站点阅读时长">3:10</span>
+    <span title="站点阅读时长">3:18</span>
 </div>
   <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.0.0
   </div>

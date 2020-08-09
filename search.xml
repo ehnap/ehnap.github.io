@@ -1,6 +1,109 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>浅谈 .NET 与 Qt Timer 实现</title>
+    <url>/2020/08/07/dotnet-qt-timer/</url>
+    <content><![CDATA[<p>前两天刚好跟同学提起如何实现一个 Timer 。提到了 Kafka 的时间轮和 Go 语言的四叉堆实现。所以就看了下 .NET 是如何实现 Timer 的。</p>
+<a id="more"></a>
+
+<p>.NET Timer 分为两种，一种是 <code>System.Windows.Threading.DispatcherTimer</code> , 另外一种是<code>System.Timers.Timer</code> 。</p>
+<h2 id="System-Windows-Threading-DispatcherTimer"><a href="#System-Windows-Threading-DispatcherTimer" class="headerlink" title="System.Windows.Threading.DispatcherTimer"></a>System.Windows.Threading.DispatcherTimer</h2><p>.NET Framework 相关源码路径：</p>
+<ul>
+<li>System\Windows\Threading\DispatcherTimer.cs</li>
+<li>System\Windows\Threading\Dispatcher.cs</li>
+<li>System\Windows\Threading\DispatcherOperation.cs</li>
+</ul>
+<p>简要实现原理：在每次新增 DispatcherTimer 的时候，都会将回调的委托存入 Dispatcher 中的 DispatcherOperation 优先队列里，但是优先级是最差的。然后将 Timer 本身存入当前 Dispatcher 的 Timer List 中。还有一个值得关注的是，时间间隔会加上系统运行时间 <code>Environment.TickCount</code> ，变成绝对时间保存下来，这是为了后边 <code>WM_TIMER</code> 到达之后，对比是否超时做准备。接下来就要关注 Dispatcher 了，当 Dispatcher 新增、删除、响应 Timer 事件以及 DispatcherTimer 调整时间间隔的时候，会调用 <code>UpdateWin32Timer()</code> , 这个方法会在当前 Dispatcher 的 Timer List 中检索最近要触发的 DispatcherTimer，如果当前没有调用过 <code>SetTimer()</code> 或者调用过的 <code>SetTimer</code> 时间间隔比当前最近要触发的长，就取时间间隔，调用 <code>SetTimer()</code>。当收到 <code>WM_TIMER</code> 消息之后，将根据程序运行时间，对比时间间隔，选出已经超时的 Timer，将之前提到的 DispatcherOperation 优先级提升，等到下一个消息循环来到时，回调 Operation 将会被从优先对列取出，并执行。</p>
+<h2 id="System-Timers-Timer"><a href="#System-Timers-Timer" class="headerlink" title="System.Timers.Timer"></a>System.Timers.Timer</h2><p>.NET Framework 相关源码路径：</p>
+<ul>
+<li>services\timers\system\timers\Timer.cs</li>
+<li>system\threading\timer.cs</li>
+<li>coreclr\src\vm\comthreadpool.cpp</li>
+</ul>
+<p>简要实现原理：<code>System.Timers.Timer</code> 只是对 <code>System.Threading.Timer</code> 包装，所以实现上看 <code>System.Threading.Timer</code> 就好。这就不得不提到 <code>System.Threading.Timer</code> 中的 <code>TimerQueue</code> 。 这是存有 <code>TimerQueueTimer</code> 的双向队列。每增加一个 Timer 的时候，都会将一个 <code>TimerQueueTimer</code> 放入 <code>TimerQueue</code> 队列。同时调用运行时的 Native 的代码 <code>AppDomainTimerNative::CreateAppDomainTimer()</code> 。后边就是 Native 的代码逻辑了，具体细节不表了，简单理解就是在线程池中搞一个线程，在线程中调用 <code>SleepEx()</code> 阻塞线程，当线程走完之后触发回调，再调回 .NET 托管代码，找到 <code>TimerQueueTimer</code> ，再执行用户回调。</p>
+<h2 id="QTimer"><a href="#QTimer" class="headerlink" title="QTimer"></a>QTimer</h2><p>相关源码路径：</p>
+<ul>
+<li>qtbase\src\corelib\kernel\qeventdispatcher_win.cpp</li>
+<li>qtbase\src\corelib\kernel\qtimer.cpp</li>
+<li>qtbase\src\corelib\kernel\qobject.cpp</li>
+</ul>
+<p><code>QTimer</code> 的实现就比较简单了，当增加一个 <code>QTimer</code> 的时候，会在 <code>QEventDispatcher</code> 中调用 Win32 API，同时在 <code>QObject</code> 中将 TimerId 保存到 Vector 中。唯一的细节是，时间间隔在 20ms 以下或者指定 QTimerType 为 Qt::PreciseTimer 的 <code>QTimer</code> 会在底层调用 <code>timeSetEvent()</code> （源码注释中也提到了，虽然方法废弃了，但是精度还是高依旧使用），而其他的就调用 <code>SetTimer()</code> 方法。</p>
+<h2 id="谈谈-SetTimer"><a href="#谈谈-SetTimer" class="headerlink" title="谈谈 SetTimer"></a>谈谈 SetTimer</h2><p><code>SetTimer()</code> 的调用是有限制的。不管别人信不信，反正我是信了。这一点在 MSDN 中 SetTimer 的描述并没有，不过通过一些现象，以及网上的一些其他帖子可以得到认证。据 SO 上的一位吃瓜网友表示，<code>SetTimer()</code> 会创建<strong>用户对象</strong>（虽然这一点微软也没说过），而用户对象在系统中是有限制的（这一点是微软明确说过的），而用户对象的数量上限是在注册表中的，根据微软的文档指示应该是在： <code>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows\USERProcessHandleQuota</code> 我看了一下 x64 系统应该是在 <code>HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows NT\CurrentVersion\Windows\USERProcessHandleQuota</code> 。默认数量是 10000 。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>分析过以上几种 Timer 的实现，就知道 .NET 的 Timer 还是做了一些微小的优化的。这也是为什么我跟同事说， 即使都是拿来做 Windows 桌面开发，.NET 框架的上限还是要比 Qt 高的原因。这大概是因为 .NET 本身从一开始就不是以桌面开发作为目标的，所以它更要考虑性能问题，但正因为如此，源码看起来比 Qt 就更为困难；而 Qt 这么实现，对一般的桌面应用来说，完全够用，代码也更容易看懂。虽然两者的实现在极端情况下都会拉闸，但是显然 Qt 的 Timer 实现会更快拉闸……</p>
+]]></content>
+      <categories>
+        <category>Programming</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+        <tag>Qt</tag>
+        <tag>C#</tag>
+        <tag>.NET</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>谈谈 DLL 注入的几种方式</title>
+    <url>/2020/08/01/dll-injection-ways/</url>
+    <content><![CDATA[<p>云游戏的键鼠捕捉用到了 Hook 这个技术，就顺便翻了一下核心编程，写下来备忘。</p>
+<a id="more"></a>
+
+<h2 id="使用注册表注入"><a href="#使用注册表注入" class="headerlink" title="使用注册表注入"></a>使用注册表注入</h2><ul>
+<li>x32 : <code>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows</code></li>
+<li>x64 : <code>HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows NT\CurrentVersion\Windows</code></li>
+</ul>
+<p>这个位置下 <code>AppInit_DLLs</code> 和 <code>LoadAppInit_DLLs</code>。 将后者置为 1，然后在前者的值输入待注入 DLL 名称（多个 DLL 用 <code>Space</code> 分隔，第一个可以带路径，后边的不行）。</p>
+<ul>
+<li>优点：方法简单</li>
+<li>缺点：只有引用了 User32.dll 的才会被注入，而且被注入进程一启动就会注入，结束才会反注入，注入周期不可控</li>
+</ul>
+<h2 id="使用-Windows-Hook-注入"><a href="#使用-Windows-Hook-注入" class="headerlink" title="使用 Windows Hook 注入"></a>使用 Windows Hook 注入</h2><p>核心方法：</p>
+<ul>
+<li><code>SetWindowsHookEx</code></li>
+<li><code>UnhookWindowsHookEx</code></li>
+</ul>
+<p>设置挂钩的时候，可以指定挂钩类型、线程 ID 、回调方法、DLL 句柄。这些已经可以准确的注入到一个进程中了。通过 Set、Unhook 两个方法可以准确的控制注入周期。</p>
+<ul>
+<li>优点：准确的控制注入周期</li>
+<li>缺点：依赖消息循环，没消息循环的线程没法注入</li>
+</ul>
+<h2 id="远程线程注入（大杀器）"><a href="#远程线程注入（大杀器）" class="headerlink" title="远程线程注入（大杀器）"></a>远程线程注入（大杀器）</h2><p>核心方法：</p>
+<ul>
+<li><code>CreateRemoteThread</code></li>
+<li><code>VirtualAllocEx</code></li>
+<li><code>VirtualFreeEx</code></li>
+<li><code>ReadProcessMemory</code></li>
+<li><code>WriteProcessMemory</code></li>
+</ul>
+<p>可以用 <code>CreateRemoteThread</code> 在指定进程中创建一个线程，让它执行我们自己的代码，这样可以让远程线程 Load 一个我们自己的 DLL，这就可以为所欲为了……需要注意的是，<code>CreateRemoteThread</code> 的参数 <code>PTHREAD_START_ROUTINE</code> 这个函数地址，需要调用 <code>GetProcAddress</code> 。如果直接传函数地址，是本进程的……显然是不对的。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">PTHREAD_START_ROUTINE pfnThreadRtn = (PTHREAD_START_ROUTINE)GetProcAddress(GetModuleHandle(TEXT(<span class="string">"Kernel32"</span>)), <span class="string">"LoadLibraryW"</span>);</span></pre></td></tr></table></figure>
+
+<p>而函数参数也要使用 <code>VirtualAllocEx</code> 来分配内存，然后 <code>WriteProcessMemory</code> 写入。这才是远程进程可以获取的。</p>
+<ul>
+<li>优点：可以为所欲为</li>
+<li>缺点：写起来有点复杂</li>
+</ul>
+<h2 id="同名-DLL-替换"><a href="#同名-DLL-替换" class="headerlink" title="同名 DLL 替换"></a>同名 DLL 替换</h2><p>如果已知一个程序必然载入一个 DLL ，则可以做一个同名 DLL 然后将方法跟原 DLL 保持一致，在方法调用中间做点其他手脚。这种如果程序校验 DLL ，就没戏。或者直接修改程序的 EXE 的导入段，这就要求对 PE 结构非常熟悉。</p>
+<h2 id="作为调试器注入"><a href="#作为调试器注入" class="headerlink" title="作为调试器注入"></a>作为调试器注入</h2><p>核心编程没说的太细，看起来要写 CPU 代码，没太细看。感觉也挺复杂，不太实用。</p>
+<h2 id="修改子进程的主线程开始位置代码"><a href="#修改子进程的主线程开始位置代码" class="headerlink" title="修改子进程的主线程开始位置代码"></a>修改子进程的主线程开始位置代码</h2><p>如果要注入的进程是子进程，可以创建它的时候挂起它，然后从 exe 模块中拿到子进程的主线程起始地址，把这里记下来，之后改成执行自己的代码，这个时候恢复子进程主线程，就可以执行自己的代码了，然后再把之前保存的执行一波。看起来也挺复杂，核心编程也没给具体例子。</p>
+<h2 id="API-拦截"><a href="#API-拦截" class="headerlink" title="API 拦截"></a>API 拦截</h2><p>第一种：把要拦截的 API 起始位置的几个字节保存起来，然后将此位置改写为 CPU 的 JUMP 指令，跳转到自己的方法。不过这种方法非常危险，不建议用。</p>
+<p>第二种：修改模块导入段拦截 API</p>
+<p>核心方法：</p>
+<ul>
+<li><code>ImageDirectoryEntryToData</code></li>
+<li><code>WriteProcessMemory</code></li>
+<li><code>VirtualProtect</code></li>
+</ul>
+<p>获取到模块的导入段信息，之后查找到指定方法，用自己的方法替换原来的方法。如果 <code>WriteProcessMemory</code> 失败，就用 <code>VirtualProtect</code> 修改一下页面保护属性。</p>
+]]></content>
+      <categories>
+        <category>Programming</category>
+      </categories>
+      <tags>
+        <tag>Windows编程</tag>
+        <tag>dll</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>连封皮都透着压抑的书</title>
     <url>/2020/07/15/a-book-about-child-sexual-abuse/</url>
     <content><![CDATA[<p>六月份的预定目标很早就读完了，懒癌发作，一直拖到现在才写。</p>
@@ -23,6 +126,39 @@
       <tags>
         <tag>随笔</tag>
         <tag>Harper说</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>极简 OBS 编译流程</title>
+    <url>/2020/07/12/build-obs/</url>
+    <content><![CDATA[<p>最近在搞 Nimo 主播端，主要是基于 OBS 魔改。所以就给组里同事写了一个极简的 OBS 编译流程。</p>
+<a id="more"></a>
+<p>这里以 OBS 25.0.8 为例。</p>
+<ol>
+<li>拉取 OBS 代码 <a href="https://github.com/obsproject/obs-studio" target="_blank" rel="noopener">https://github.com/obsproject/obs-studio</a> (<code>source path</code>)</li>
+<li>切换到 25.0.8 tag</li>
+<li>下载依赖的 Qt 库 <a href="https://cdn-fastly.obsproject.com/downloads/Qt_5.10.1.7z" target="_blank" rel="noopener">https://cdn-fastly.obsproject.com/downloads/Qt_5.10.1.7z</a> (<code>Qt path</code>)</li>
+<li>下载编译过程需要的依赖 <a href="https://obsproject.com/downloads/dependencies2017.zip" target="_blank" rel="noopener">https://obsproject.com/downloads/dependencies2017.zip</a> (<code>dependency path</code>)</li>
+<li>安装最新版的 CMake  <a href="https://cmake.org/download/" target="_blank" rel="noopener">https://cmake.org/download/</a></li>
+<li>安装Windows 10 SDK (10.0.19041.0) <strong>(注：低于这个版本会因为找不到一个 winrt api 编不过)</strong></li>
+<li>新建工程目录 (<code>build path</code>)</li>
+<li>打开 CMake GUI 。 并设置 Source 为 <code>source path</code>， 设置 Build 为 <code>build path</code></li>
+<li>点击 Configure</li>
+<li>编译 x64 不需要填额外参数点 Finish</li>
+<li>Configure 出错莫慌，设置 DepsPath 为 <code>dependency path</code>，设置 QTDIR 为 <code>Qt path</code> 的下级目录(指定位数这一级) msvc2017_64</li>
+<li>再次点击 Configure</li>
+<li>点击 Generate</li>
+<li>这个时候就可以在 <code>build path</code> 看到解决方案了，用 VS 打开编译即可</li>
+<li>生成的 obs64.exe 在 <code>UI\Debug\</code> 下</li>
+</ol>
+<p>这只是 OBS 不带任何其他开关的编译方法。如果需要其他非默认模块，Configure 之前将需要的宏定义加入，再生成解决方案。</p>
+]]></content>
+      <categories>
+        <category>Programming</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+        <tag>OBS</tag>
       </tags>
   </entry>
   <entry>
@@ -279,6 +415,7 @@
 <p>以导出名为 TESTFUNC 方法为例：</p>
 <h2 id="def-文件方式"><a href="#def-文件方式" class="headerlink" title="def 文件方式"></a>def 文件方式</h2><p>，正常在程序中定义方法，然后新建一个 .def 文件，内容类似</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">LIBRARY</span></pre></td></tr><tr><td class="code"><pre><span class="line">EXPORT</span></pre></td></tr><tr><td class="code"><pre><span class="line">    TESTFUNC</span></pre></td></tr></table></figure>
+
 <p>在其他工程使用这个方法的时候需要头文件，然后在连接时指定 .def 文件目录。</p>
 <h2 id="dllexport方式"><a href="#dllexport方式" class="headerlink" title="dllexport方式"></a>dllexport方式</h2><p>在定义 TESTFUNC 方法时，在声明前加上 <code>__declspec(dllexport)</code>。</p>
 <h2 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h2><p>这里就不得不说导出符号在 DLL 中的形式。实际上对于 C++ 来说，当导出的时候，不会以原名导出，因为会加上一些符号字母后缀，实际上如果了解 C++ 的人，也会知道 C++ 在处理函数重载的时候，其实也用了这个套路，实际上编译之后就没有重载的概念了，而是根据参数生成了独一无二的方法名。</p>
@@ -298,8 +435,7 @@
 <p>话说回来，那也不可能每次都把<code>@</code>那些符号写对。所以会看到有时候导出的时候<code>_extern &quot;C&quot; _declspec(dllexport)</code>这样写，这是为了让函数以 C 的方式来编译，这样导出的方法就是没有那些符号的了，但这样有个问题，就是函数必须以 C 方式调用，而且也不能用来导出类对象，原因是显而易见的……</p>
 <p>其实当了解上边之后，不难发现，1、2才是我们最想要的，3就很局限。这样问题就来了，1、2两种方式又有什么区别呢：</p>
 <p>区别就在这个 .lib 上，如果在 C++ 或者 C 工程这个范围来说，确实没区别。但是假如调用工程不是 C++ 工程呢，他就是个 C# 工程呢，他是没办法用 .lib 的。</p>
-<p><strong>综上所述：.def 文件的方式才是最通用的做法</strong></p>
-<p>那回到我最初的问题，我的 C# 工程之所以在调用使用 <code>dllexport</code>导出的方法失败，就是因为，我没有写对真正的方法名(带一堆符号的那个)。而使用 .def 文件的话，就没有这个问题了。</p>
+<p><strong>综上所述：.def 文件的方式才是最通用的做法</strong>。那回到我最初的问题，我的 C# 工程之所以在调用使用 <code>dllexport</code>导出的方法失败，就是因为，我没有写对真正的方法名(带一堆符号的那个)。而使用 .def 文件的话，就没有这个问题了。</p>
 ]]></content>
       <categories>
         <category>Programming</category>
@@ -310,22 +446,25 @@
       </tags>
   </entry>
   <entry>
-    <title>bcrypt死锁探秘</title>
+    <title>bcrypt 死锁探秘</title>
     <url>/2019/04/15/windows-bcrypt-deadlock/</url>
     <content><![CDATA[<p>产品经理反馈程序经常失去响应，从他那里创建了 dump 文件，取回来，用 windbg 分析一番。感慨颇多。</p>
 <a id="more"></a>
 
 <h3 id="调试过程"><a href="#调试过程" class="headerlink" title="调试过程"></a>调试过程</h3><p>加载符号</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;!analyze -v</span></pre></td></tr><tr><td class="code"><pre><span class="line">wow64cpu!CpupSyscallStub+0x9:</span></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&gt;!analyze -v</span></pre></td></tr><tr><td class="code"><pre><span class="line">wow64cpu!CpupSyscallStub+0x9:</span></pre></td></tr></table></figure>
+
 <p>看到这个，系统是64位的，转换一下</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;.load wow64exts</span></pre></td></tr><tr><td class="code"><pre><span class="line">&gt;!sw</span></pre></td></tr><tr><td class="code"><pre><span class="line">&gt;!analyze -v</span></pre></td></tr><tr><td class="code"><pre><span class="line"></span></pre></td></tr><tr><td class="code"><pre><span class="line">STACK_TEXT:  </span></pre></td></tr><tr><td class="code"><pre><span class="line">002294a8 76a43d3c 00000000 002294ec 396663fe ntdll_771d0000!ZwDelayExecution+0x15</span></pre></td></tr><tr><td class="code"><pre><span class="line">00229510 5169f801 00000001 00000000 00035086 KERNELBASE!SleepEx+0x65</span></pre></td></tr><tr><td class="code"><pre><span class="line">00229528 519377cd 0dd20834 0dd20830 00229650 clr!EESleepEx+0x4f</span></pre></td></tr><tr><td class="code"><pre><span class="line">00229538 517afa11 00000000 39676e87 025cfb70 clr!__DangerousSwitchToThread+0x72</span></pre></td></tr><tr><td class="code"><pre><span class="line">00229650 517afad5 00390da0 39676e37 00229700 clr!ThreadNative::StartInner+0x2c1</span></pre></td></tr><tr><td class="code"><pre><span class="line">002296e0 79946049 00229700 00000000 025cfb50 clr!ThreadNative::Start+0x6a</span></pre></td></tr><tr><td class="code"><pre><span class="line">002296f8 79945fe4 00000001 00229738 0802a1c7 mscorlib_ni!System.Threading.Thread.Start(System.Threading.StackCrawlMark ByRef)+0x61</span></pre></td></tr><tr><td class="code"><pre><span class="line">00229704 0802a1c7 023dbe24 025cfb40 00000000 mscorlib_ni!System.Threading.Thread.Start()+0x18</span></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&gt;.load wow64exts</span></pre></td></tr><tr><td class="code"><pre><span class="line">&gt;!sw</span></pre></td></tr><tr><td class="code"><pre><span class="line">&gt;!analyze -v</span></pre></td></tr><tr><td class="code"><pre><span class="line"></span></pre></td></tr><tr><td class="code"><pre><span class="line">STACK_TEXT:  </span></pre></td></tr><tr><td class="code"><pre><span class="line">002294a8 76a43d3c 00000000 002294ec 396663fe ntdll_771d0000!ZwDelayExecution+0x15</span></pre></td></tr><tr><td class="code"><pre><span class="line">00229510 5169f801 00000001 00000000 00035086 KERNELBASE!SleepEx+0x65</span></pre></td></tr><tr><td class="code"><pre><span class="line">00229528 519377cd 0dd20834 0dd20830 00229650 clr!EESleepEx+0x4f</span></pre></td></tr><tr><td class="code"><pre><span class="line">00229538 517afa11 00000000 39676e87 025cfb70 clr!__DangerousSwitchToThread+0x72</span></pre></td></tr><tr><td class="code"><pre><span class="line">00229650 517afad5 00390da0 39676e37 00229700 clr!ThreadNative::StartInner+0x2c1</span></pre></td></tr><tr><td class="code"><pre><span class="line">002296e0 79946049 00229700 00000000 025cfb50 clr!ThreadNative::Start+0x6a</span></pre></td></tr><tr><td class="code"><pre><span class="line">002296f8 79945fe4 00000001 00229738 0802a1c7 mscorlib_ni!System.Threading.Thread.Start(System.Threading.StackCrawlMark ByRef)+0x61</span></pre></td></tr><tr><td class="code"><pre><span class="line">00229704 0802a1c7 023dbe24 025cfb40 00000000 mscorlib_ni!System.Threading.Thread.Start()+0x18</span></pre></td></tr></table></figure>
 
 <p>看了一下，这里应该不是事故现场。看看其他线程</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;~*kb</span></pre></td></tr><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;此处省略一些信息</span></pre></td></tr><tr><td class="code"><pre><span class="line">......</span></pre></td></tr><tr><td class="code"><pre><span class="line"> 417  Id: 1480.3cfc Suspend: 0 Teb: 7ea61000 Unfrozen</span></pre></td></tr><tr><td class="code"><pre><span class="line"> # ChildEBP RetAddr  Args to Child              </span></pre></td></tr><tr><td class="code"><pre><span class="line">00 3849f5dc 7721eb4e 00000250 00000000 00000000 ntdll_771d0000!NtWaitForSingleObject+0x15</span></pre></td></tr><tr><td class="code"><pre><span class="line">01 3849f640 7721ea32 00000000 00000000 00000000 ntdll_771d0000!RtlpWaitOnCriticalSection+0x13e</span></pre></td></tr><tr><td class="code"><pre><span class="line">02 3849f668 77209aa9 772d20c0 4f52bc5c 7ea63000 ntdll_771d0000!RtlEnterCriticalSection+0x150</span></pre></td></tr><tr><td class="code"><pre><span class="line">03 3849f6fc 7720984c 3849f76c 4f52bde8 00000000 ntdll_771d0000!LdrpInitializeThread+0xc6</span></pre></td></tr><tr><td class="code"><pre><span class="line">04 3849f748 77209879 3849f76c 771d0000 00000000 ntdll_771d0000!_LdrpInitialize+0x1ad</span></pre></td></tr><tr><td class="code"><pre><span class="line">05 3849f758 00000000 3849f76c 771d0000 00000000 ntdll_771d0000!LdrInitializeThunk+0x10</span></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&gt;~*kb</span></pre></td></tr><tr><td class="code"><pre><span class="line">//此处省略一些信息</span></pre></td></tr><tr><td class="code"><pre><span class="line">......</span></pre></td></tr><tr><td class="code"><pre><span class="line"> 417  Id: 1480.3cfc Suspend: 0 Teb: 7ea61000 Unfrozen</span></pre></td></tr><tr><td class="code"><pre><span class="line"> <span class="comment"># ChildEBP RetAddr  Args to Child</span></span></pre></td></tr><tr><td class="code"><pre><span class="line">00 3849f5dc 7721eb4e 00000250 00000000 00000000 ntdll_771d0000!NtWaitForSingleObject+0x15</span></pre></td></tr><tr><td class="code"><pre><span class="line">01 3849f640 7721ea32 00000000 00000000 00000000 ntdll_771d0000!RtlpWaitOnCriticalSection+0x13e</span></pre></td></tr><tr><td class="code"><pre><span class="line">02 3849f668 77209aa9 772d20c0 4f52bc5c 7ea63000 ntdll_771d0000!RtlEnterCriticalSection+0x150</span></pre></td></tr><tr><td class="code"><pre><span class="line">03 3849f6fc 7720984c 3849f76c 4f52bde8 00000000 ntdll_771d0000!LdrpInitializeThread+0xc6</span></pre></td></tr><tr><td class="code"><pre><span class="line">04 3849f748 77209879 3849f76c 771d0000 00000000 ntdll_771d0000!_LdrpInitialize+0x1ad</span></pre></td></tr><tr><td class="code"><pre><span class="line">05 3849f758 00000000 3849f76c 771d0000 00000000 ntdll_771d0000!LdrInitializeThunk+0x10</span></pre></td></tr></table></figure>
+
 <p>417个线程，大部分线程堆栈都是这样，看起来可能是存在死锁，导致线程不能正常退出</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;!locks</span></pre></td></tr><tr><td class="code"><pre><span class="line">Scanned 9 critical sections</span></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&gt;!locks</span></pre></td></tr><tr><td class="code"><pre><span class="line">Scanned 9 critical sections</span></pre></td></tr></table></figure>
+
 <p>没有多余信息。查看一下关键段信息</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt;!cs -s -l -o</span></pre></td></tr><tr><td class="code"><pre><span class="line">DebugInfo          &#x3D; 0x772d4380</span></pre></td></tr><tr><td class="code"><pre><span class="line">Critical section   &#x3D; 0x772d20c0 (ntdll_771d0000!LdrpLoaderLock+0x0)</span></pre></td></tr><tr><td class="code"><pre><span class="line">LOCKED</span></pre></td></tr><tr><td class="code"><pre><span class="line">LockCount          &#x3D; 0x187</span></pre></td></tr><tr><td class="code"><pre><span class="line">WaiterWoken        &#x3D; No</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread       &#x3D; 0x00001a0c</span></pre></td></tr><tr><td class="code"><pre><span class="line">RecursionCount     &#x3D; 0x1</span></pre></td></tr><tr><td class="code"><pre><span class="line">LockSemaphore      &#x3D; 0x250</span></pre></td></tr><tr><td class="code"><pre><span class="line">SpinCount          &#x3D; 0x00000000</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread DbgId &#x3D; ~47s</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread Stack &#x3D;</span></pre></td></tr><tr><td class="code"><pre><span class="line">	ChildEBP RetAddr  Args to Child              </span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd76c 7721eb4e 00000ed8 00000000 00000000 ntdll_771d0000!NtWaitForSingleObject+0x15 (FPO: [3,0,0])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd7d0 7721ea32 00000000 00000000 00000000 ntdll_771d0000!RtlpWaitOnCriticalSection+0x13e (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd7f8 6f882f8e 6f894060 00000000 0dd63b7c ntdll_771d0000!RtlEnterCriticalSection+0x150 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd820 6f882dc8 06f640c8 00000000 0dd63b78 bcrypt+0x2f8e</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd874 72269a42 184fd894 72269a70 00000000 bcrypt+0x2dc8</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd898 7659c167 722a49cc 184fd8c0 721aea6e msxml6!AutoInitSalt::AutoInitSalt+0x1f (FPO: [Non-Fpo]) (CONV: thiscall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd8a4 721aea6e 721aea9c 721aeb90 00000001 msvcrt!_initterm+0x13 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd8c0 72191456 72190000 00000000 00000000 msxml6!_CRT_INIT+0xc3 (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd920 721ae3fe 72190000 00000001 00000000 msxml6!__DllMainCRTStartup+0x9e (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd940 77209344 72190000 00000001 00000000 msxml6!InitDllMain+0x90 (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd960 7720fde1 7219135c 72190000 00000001 ntdll_771d0000!LdrpCallInitRoutine+0x14</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fda54 7720ea5e 00000000 6f549168 184fdbf8 ntdll_771d0000!LdrpRunInitializeRoutines+0x26f (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdbc8 7724d39f 184fdc38 184fdbf8 0dee0974 ntdll_771d0000!LdrpLoadDll+0x472 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdc04 76a42e0f 00000000 184fdc58 184fdc38 ntdll_771d0000!LdrLoadDll+0xc7 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdc4c 75d29c67 00000000 00000000 00002008 KERNELBASE!LoadLibraryExW+0x233 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdc68 75d29bea 00000000 184fdce4 00002008 ole32!LoadLibraryWithLogging+0x16 (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdc8c 75d29ad6 184fdce4 184fdcb0 184fdcb4 ole32!CClassCache::CDllPathEntry::LoadDll+0xaf (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdcbc 75d28fde 184fdce4 184fdfcc 184fdcdc ole32!CClassCache::CDllPathEntry::Create_rl+0x37 (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdf08 75d28eb3 00000001 184fdfcc 184fdf38 ole32!CClassCache::CClassEntry::CreateDllClassEntry_rl+0xd4 (FPO: [Non-Fpo]) (CONV: thiscall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdf50 75d28db9 00000001 071100e8 184fdf7c ole32!CClassCache::GetClassObjectActivator+0x224 (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">$&#123;$ntdllwsym&#125;!RtlpStackTraceDataBase is NULL. Probably the stack traces are not enabled.</span></pre></td></tr><tr><td class="code"><pre><span class="line">-----------------------------------------</span></pre></td></tr><tr><td class="code"><pre><span class="line">DebugInfo          &#x3D; 0x070be3a8</span></pre></td></tr><tr><td class="code"><pre><span class="line">Critical section   &#x3D; 0x6f894060 (bcrypt+0x14060)</span></pre></td></tr><tr><td class="code"><pre><span class="line">LOCKED</span></pre></td></tr><tr><td class="code"><pre><span class="line">LockCount          &#x3D; 0x1</span></pre></td></tr><tr><td class="code"><pre><span class="line">WaiterWoken        &#x3D; No</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread       &#x3D; 0x000021e4</span></pre></td></tr><tr><td class="code"><pre><span class="line">RecursionCount     &#x3D; 0x1</span></pre></td></tr><tr><td class="code"><pre><span class="line">LockSemaphore      &#x3D; 0xED8</span></pre></td></tr><tr><td class="code"><pre><span class="line">SpinCount          &#x3D; 0x00000000</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread DbgId &#x3D; ~18s</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread Stack &#x3D;</span></pre></td></tr><tr><td class="code"><pre><span class="line">	ChildEBP RetAddr  Args to Child              </span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e2bc 7721eb4e 00000250 00000000 00000000 ntdll_771d0000!NtWaitForSingleObject+0x15 (FPO: [3,0,0])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e320 7721ea32 00000000 00000000 0b80e388 ntdll_771d0000!RtlpWaitOnCriticalSection+0x13e (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e348 77200329 772d20c0 7c9ba944 6f88275c ntdll_771d0000!RtlEnterCriticalSection+0x150 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e3e4 77200262 6f840000 0b80e420 00000000 ntdll_771d0000!LdrGetProcedureAddressEx+0x159 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e400 76a41f7c 6f840000 0b80e420 00000000 ntdll_771d0000!LdrGetProcedureAddress+0x18 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e428 6f8826e6 6f840000 6f88275c 0dd7a980 KERNELBASE!GetProcAddress+0x44 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e43c 6f882fbc 6f840000 0dd7a980 00000000 bcrypt+0x26e6</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e470 6f882dc8 0dd7a980 00000000 0dd63c20 bcrypt+0x2fbc</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e4c4 6f8564b4 0b80e4f0 76b6b79c 00000000 bcrypt+0x2dc8</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e4f4 6f856445 00000002 0b80e5b4 0b80e618 bcryptprimitives!CheckSignaturePadding+0x44 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e530 6f886380 0dd7b1b8 0b80e5b4 0b80e618 bcryptprimitives!MSCryptRsaVerifySignature+0x90 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e574 76b8515e 0dc37230 0b80e5b4 0b80e618 bcrypt+0x6380</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e5a8 76b8511a 0dc37230 76b6b79c 0b80e618 crypt32!I_CryptCNGSignAndEncodeHash+0x18d (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e5e0 76b84fc5 00000001 0044b478 00000000 crypt32!I_CryptCNGVerifyEncodedSignature+0xba (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e668 76b84eb4 76b6bf8c 00000001 0044b478 crypt32!I_CryptCNGVerifyCertificateSignedContent+0x15d (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e6d4 76b65db2 00000000 00000001 00000002 crypt32!CryptVerifyCertificateSignatureEx+0x242 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e72c 76b65b7c 0de850b0 0ddb6358 00000000 crypt32!ChainGetSubjectStatus+0x90 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e758 76b655a3 0de850b0 00000000 0ddb6358 crypt32!CCertIssuerList::CreateElement+0x51 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e790 76b694fc 0de850b0 0de85128 07138910 crypt32!CCertIssuerList::AddIssuer+0x87 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e7bc 76b6605d 00000002 0de850b0 0de85128 crypt32!CChainPathObject::FindAndAddIssuersFromCacheByMatchType+0x87 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">$&#123;$ntdllwsym&#125;!RtlpStackTraceDataBase is NULL. Probably the stack traces are not enabled.</span></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&gt;!cs -s -l -o</span></pre></td></tr><tr><td class="code"><pre><span class="line">DebugInfo          = 0x772d4380</span></pre></td></tr><tr><td class="code"><pre><span class="line">Critical section   = 0x772d20c0 (ntdll_771d0000!LdrpLoaderLock+0x0)</span></pre></td></tr><tr><td class="code"><pre><span class="line">LOCKED</span></pre></td></tr><tr><td class="code"><pre><span class="line">LockCount          = 0x187</span></pre></td></tr><tr><td class="code"><pre><span class="line">WaiterWoken        = No</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread       = 0x00001a0c</span></pre></td></tr><tr><td class="code"><pre><span class="line">RecursionCount     = 0x1</span></pre></td></tr><tr><td class="code"><pre><span class="line">LockSemaphore      = 0x250</span></pre></td></tr><tr><td class="code"><pre><span class="line">SpinCount          = 0x00000000</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread DbgId = ~47s</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread Stack =</span></pre></td></tr><tr><td class="code"><pre><span class="line">	ChildEBP RetAddr  Args to Child              </span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd76c 7721eb4e 00000ed8 00000000 00000000 ntdll_771d0000!NtWaitForSingleObject+0x15 (FPO: [3,0,0])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd7d0 7721ea32 00000000 00000000 00000000 ntdll_771d0000!RtlpWaitOnCriticalSection+0x13e (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd7f8 6f882f8e 6f894060 00000000 0dd63b7c ntdll_771d0000!RtlEnterCriticalSection+0x150 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd820 6f882dc8 06f640c8 00000000 0dd63b78 bcrypt+0x2f8e</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd874 72269a42 184fd894 72269a70 00000000 bcrypt+0x2dc8</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd898 7659c167 722a49cc 184fd8c0 721aea6e msxml6!AutoInitSalt::AutoInitSalt+0x1f (FPO: [Non-Fpo]) (CONV: thiscall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd8a4 721aea6e 721aea9c 721aeb90 00000001 msvcrt!_initterm+0x13 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd8c0 72191456 72190000 00000000 00000000 msxml6!_CRT_INIT+0xc3 (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd920 721ae3fe 72190000 00000001 00000000 msxml6!__DllMainCRTStartup+0x9e (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd940 77209344 72190000 00000001 00000000 msxml6!InitDllMain+0x90 (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fd960 7720fde1 7219135c 72190000 00000001 ntdll_771d0000!LdrpCallInitRoutine+0x14</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fda54 7720ea5e 00000000 6f549168 184fdbf8 ntdll_771d0000!LdrpRunInitializeRoutines+0x26f (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdbc8 7724d39f 184fdc38 184fdbf8 0dee0974 ntdll_771d0000!LdrpLoadDll+0x472 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdc04 76a42e0f 00000000 184fdc58 184fdc38 ntdll_771d0000!LdrLoadDll+0xc7 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdc4c 75d29c67 00000000 00000000 00002008 KERNELBASE!LoadLibraryExW+0x233 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdc68 75d29bea 00000000 184fdce4 00002008 ole32!LoadLibraryWithLogging+0x16 (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdc8c 75d29ad6 184fdce4 184fdcb0 184fdcb4 ole32!CClassCache::CDllPathEntry::LoadDll+0xaf (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdcbc 75d28fde 184fdce4 184fdfcc 184fdcdc ole32!CClassCache::CDllPathEntry::Create_rl+0x37 (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdf08 75d28eb3 00000001 184fdfcc 184fdf38 ole32!CClassCache::CClassEntry::CreateDllClassEntry_rl+0xd4 (FPO: [Non-Fpo]) (CONV: thiscall)</span></pre></td></tr><tr><td class="code"><pre><span class="line">	184fdf50 75d28db9 00000001 071100e8 184fdf7c ole32!CClassCache::GetClassObjectActivator+0x224 (FPO: [Non-Fpo]) (CONV: stdcall)</span></pre></td></tr><tr><td class="code"><pre><span class="line"><span class="variable">$&#123;$ntdllwsym&#125;</span>!RtlpStackTraceDataBase is NULL. Probably the stack traces are not enabled.</span></pre></td></tr><tr><td class="code"><pre><span class="line">-----------------------------------------</span></pre></td></tr><tr><td class="code"><pre><span class="line">DebugInfo          = 0x070be3a8</span></pre></td></tr><tr><td class="code"><pre><span class="line">Critical section   = 0x6f894060 (bcrypt+0x14060)</span></pre></td></tr><tr><td class="code"><pre><span class="line">LOCKED</span></pre></td></tr><tr><td class="code"><pre><span class="line">LockCount          = 0x1</span></pre></td></tr><tr><td class="code"><pre><span class="line">WaiterWoken        = No</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread       = 0x000021e4</span></pre></td></tr><tr><td class="code"><pre><span class="line">RecursionCount     = 0x1</span></pre></td></tr><tr><td class="code"><pre><span class="line">LockSemaphore      = 0xED8</span></pre></td></tr><tr><td class="code"><pre><span class="line">SpinCount          = 0x00000000</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread DbgId = ~18s</span></pre></td></tr><tr><td class="code"><pre><span class="line">OwningThread Stack =</span></pre></td></tr><tr><td class="code"><pre><span class="line">	ChildEBP RetAddr  Args to Child              </span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e2bc 7721eb4e 00000250 00000000 00000000 ntdll_771d0000!NtWaitForSingleObject+0x15 (FPO: [3,0,0])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e320 7721ea32 00000000 00000000 0b80e388 ntdll_771d0000!RtlpWaitOnCriticalSection+0x13e (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e348 77200329 772d20c0 7c9ba944 6f88275c ntdll_771d0000!RtlEnterCriticalSection+0x150 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e3e4 77200262 6f840000 0b80e420 00000000 ntdll_771d0000!LdrGetProcedureAddressEx+0x159 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e400 76a41f7c 6f840000 0b80e420 00000000 ntdll_771d0000!LdrGetProcedureAddress+0x18 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e428 6f8826e6 6f840000 6f88275c 0dd7a980 KERNELBASE!GetProcAddress+0x44 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e43c 6f882fbc 6f840000 0dd7a980 00000000 bcrypt+0x26e6</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e470 6f882dc8 0dd7a980 00000000 0dd63c20 bcrypt+0x2fbc</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e4c4 6f8564b4 0b80e4f0 76b6b79c 00000000 bcrypt+0x2dc8</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e4f4 6f856445 00000002 0b80e5b4 0b80e618 bcryptprimitives!CheckSignaturePadding+0x44 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e530 6f886380 0dd7b1b8 0b80e5b4 0b80e618 bcryptprimitives!MSCryptRsaVerifySignature+0x90 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e574 76b8515e 0dc37230 0b80e5b4 0b80e618 bcrypt+0x6380</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e5a8 76b8511a 0dc37230 76b6b79c 0b80e618 crypt32!I_CryptCNGSignAndEncodeHash+0x18d (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e5e0 76b84fc5 00000001 0044b478 00000000 crypt32!I_CryptCNGVerifyEncodedSignature+0xba (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e668 76b84eb4 76b6bf8c 00000001 0044b478 crypt32!I_CryptCNGVerifyCertificateSignedContent+0x15d (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e6d4 76b65db2 00000000 00000001 00000002 crypt32!CryptVerifyCertificateSignatureEx+0x242 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e72c 76b65b7c 0de850b0 0ddb6358 00000000 crypt32!ChainGetSubjectStatus+0x90 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e758 76b655a3 0de850b0 00000000 0ddb6358 crypt32!CCertIssuerList::CreateElement+0x51 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e790 76b694fc 0de850b0 0de85128 07138910 crypt32!CCertIssuerList::AddIssuer+0x87 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line">	0b80e7bc 76b6605d 00000002 0de850b0 0de85128 crypt32!CChainPathObject::FindAndAddIssuersFromCacheByMatchType+0x87 (FPO: [Non-Fpo])</span></pre></td></tr><tr><td class="code"><pre><span class="line"><span class="variable">$&#123;$ntdllwsym&#125;</span>!RtlpStackTraceDataBase is NULL. Probably the stack traces are not enabled.</span></pre></td></tr></table></figure>
 <p>有很多个，但是前两个就可以破案了。</p>
 <p>18号线程：</p>
 <p><code>0b80e348 77200329 772d20c0 7c9ba944 6f88275c ntdll_771d0000!RtlEnterCriticalSection+0x150 (FPO: [Non-Fpo])</code><br>进入了 0x6f894060 关键段，想要访问 0x772d20c0 这个关键段</p>
@@ -1576,7 +1715,7 @@
 <ul>
 <li><a href="http://wiki.qt.io/Building_Qt_5_from_Git" target="_blank" rel="noopener">Building-Qt5-from-Git</a></li>
 </ul>
-<p>Windows下自己准备自己想要的编译器。编译自己想要的Qt版本<br>最近5.6出来了，有好多新的变化，第一时间准备尝鲜。<br>我自己的是MSVC2015 Qt5.6</p>
+<p>Windows 下自己准备自己想要的编译器。编译自己想要的 Qt 版本<br>最近 5.6 出来了，有好多新的变化，第一时间准备尝鲜。<br>我自己的是 MSVC2015 Qt5.6</p>
 <a id="more"></a>
 <p>首先要准备：</p>
 <ul>
@@ -1584,14 +1723,13 @@
 <li>Git</li>
 <li>python</li>
 </ul>
-<p>如果要是编译webkit的话，还需要icu套件，这次为了熟悉流程先不编这个，因为Qt5.6已经把webkit移除了，换成了webengine，官网的文档还没有更新，暂时还没研究</p>
+<p>如果要是编译webkit的话，还需要 icu 套件，这次为了熟悉流程先不编这个，因为 Qt5.6 已经把 webkit 移除了，换成了 webengine ，官网的文档还没有更新，暂时还没研究</p>
 <p><strong>一定要先装Perl再装Git，以免用了老的Git，会导致脚本失败</strong><br>而且安装Git的时候需要选择<strong>可以在cmd使用Git命令</strong>，不然就只能用Git自己带的那个命令行了<br>Qt的代码使用Git做版本管理，但是他的子库很多，每个模块都是单独的一个仓库，所以检出的时候为了避免麻烦则用Perl写成了脚本。</p>
 <p>为了方便的话，可以直接用VS的命令行，这样免了设置MSVC的环境了。<br>设置一些环境变量：</p>
-<blockquote>
-<p>SET _ROOT=C:\qt5<br>SET PATH=%_ROOT%\qtbase\bin;%_ROOT%\gnuwin32\bin;%PATH%<br>SET QMAKESPEC=win32-msvc2015<br>SET _ROOT=</p>
-</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SET _ROOT=C:\qt5</span></pre></td></tr><tr><td class="code"><pre><span class="line">SET PATH=%_ROOT%\qtbase\bin;%_ROOT%\gnuwin32\bin;%PATH%</span></pre></td></tr><tr><td class="code"><pre><span class="line">SET QMAKESPEC=win32-msvc2015</span></pre></td></tr><tr><td class="code"><pre><span class="line">SET _ROOT=</span></pre></td></tr></table></figure>
+
 <ul>
-<li>注：_ROOT设置成自己检出Qt代码的目录(你检出代码之后再去设置这些也是可以的)，QMAKESPEC设置成自己用的编译器</li>
+<li>注：_ROOT设置成自己检出Qt代码的目录(你检出代码之后再去设置这些也是可以的)，QMAKESPEC 设置成自己用的编译器</li>
 </ul>
 <h3 id="取顶层仓库"><a href="#取顶层仓库" class="headerlink" title="取顶层仓库"></a>取顶层仓库</h3><blockquote>
 <p>git clone git://code.qt.io/qt/qt5.git</p>
