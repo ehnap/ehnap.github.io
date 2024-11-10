@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/uploads/favicon-16-blog.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/uploads/favicon-32-blog.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/uploads/favicon-16-blog.png">
+  <link rel="mask-icon" href="/uploads/favicon-16-blog.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"ehnap.me","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12,"onmobile":false},"hljswrap":true,"copycode":{"enable":false,"style":null,"show_result":false},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false,"trigger":"auto"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="产品经理反馈程序经常失去响应，从他那里创建了 dump 文件，取回来，用 windbg 分析一番。感慨颇多。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="bcrypt 死锁探秘">
+<meta property="og:url" content="https://ehnap.me/2019/04/15/windows-bcrypt-deadlock/index.html">
+<meta property="og:site_name" content="Harper Talk">
+<meta property="og:description" content="产品经理反馈程序经常失去响应，从他那里创建了 dump 文件，取回来，用 windbg 分析一番。感慨颇多。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-04-14T17:47:57.000Z">
+<meta property="article:modified_time" content="2019-04-14T17:47:57.000Z">
+<meta property="article:author" content="ehnap">
+<meta property="article:tag" content="Windows编程">
+<meta property="article:tag" content="Windbg">
+<meta property="article:tag" content="调试">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://ehnap.me/2019/04/15/windows-bcrypt-deadlock/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ehnap.me/2019/04/15/windows-bcrypt-deadlock/","path":"2019/04/15/windows-bcrypt-deadlock/","title":"bcrypt 死锁探秘"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>bcrypt 死锁探秘 | Harper Talk</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0LB4K68FT4"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"G-0LB4K68FT4","only_pageview":false,"measure_protocol_api_secret":null}</script>
+  <script src="/js/third-party/analytics/google-analytics.js"></script>
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?4b3abb0db859d505583886941f31bfb1"></script>
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="Harper Talk" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Harper Talk</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">疯言疯语</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li><li class="menu-item menu-item-programming"><a href="/categories/Programming/" rel="section"><i class="code fa-fw"></i>Programming</a></li><li class="menu-item menu-item-it-life"><a href="/categories/IT-Life/" rel="section"><i class="leaf fa-fw"></i>IT-Life</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-commonweal"><a href="/404.html" rel="section"><i class="heartbeat fa-fw"></i>公益 404</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%83%E8%AF%95%E8%BF%87%E7%A8%8B"><span class="nav-number">1.</span> <span class="nav-text">调试过程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%8E%E8%AE%B0"><span class="nav-number">2.</span> <span class="nav-text">后记</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ehnap"
+      src="/uploads/touxiang.jpg">
+  <p class="site-author-name" itemprop="name">ehnap</p>
+  <div class="site-description" itemprop="description">人生如水，冷暖自知。</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ehnap" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ehnap" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ehnap@foxmail.com" title="E-Mail → mailto:ehnap@foxmail.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml" rel="noopener me"><i class="rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ehnap.me/2019/04/15/windows-bcrypt-deadlock/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/touxiang.jpg">
+      <meta itemprop="name" content="ehnap">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Harper Talk">
+      <meta itemprop="description" content="人生如水，冷暖自知。">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="bcrypt 死锁探秘 | Harper Talk">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          bcrypt 死锁探秘
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-04-15 01:47:57" itemprop="dateCreated datePublished" datetime="2019-04-15T01:47:57+08:00">2019-04-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Programming/" itemprop="url" rel="index"><span itemprop="name">Programming</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>产品经理反馈程序经常失去响应，从他那里创建了 dump 文件，取回来，用 windbg 分析一番。感慨颇多。</p>
+<span id="more"></span>
+
+<h3 id="调试过程"><a href="#调试过程" class="headerlink" title="调试过程"></a>调试过程</h3><p>加载符号</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;!analyze -v</span><br><span class="line">wow64cpu!CpupSyscallStub+0x9:</span><br></pre></td></tr></table></figure>
+
+<p>看到这个，系统是64位的，转换一下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&gt;.load wow64exts</span><br><span class="line">&gt;!sw</span><br><span class="line">&gt;!analyze -v</span><br><span class="line"></span><br><span class="line">STACK_TEXT:  </span><br><span class="line">002294a8 76a43d3c 00000000 002294ec 396663fe ntdll_771d0000!ZwDelayExecution+0x15</span><br><span class="line">00229510 5169f801 00000001 00000000 00035086 KERNELBASE!SleepEx+0x65</span><br><span class="line">00229528 519377cd 0dd20834 0dd20830 00229650 clr!EESleepEx+0x4f</span><br><span class="line">00229538 517afa11 00000000 39676e87 025cfb70 clr!__DangerousSwitchToThread+0x72</span><br><span class="line">00229650 517afad5 00390da0 39676e37 00229700 clr!ThreadNative::StartInner+0x2c1</span><br><span class="line">002296e0 79946049 00229700 00000000 025cfb50 clr!ThreadNative::Start+0x6a</span><br><span class="line">002296f8 79945fe4 00000001 00229738 0802a1c7 mscorlib_ni!System.Threading.Thread.Start(System.Threading.StackCrawlMark ByRef)+0x61</span><br><span class="line">00229704 0802a1c7 023dbe24 025cfb40 00000000 mscorlib_ni!System.Threading.Thread.Start()+0x18</span><br></pre></td></tr></table></figure>
+
+<p>看了一下，这里应该不是事故现场。看看其他线程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&gt;~*kb</span><br><span class="line">//此处省略一些信息</span><br><span class="line">......</span><br><span class="line"> 417  Id: 1480.3cfc Suspend: 0 Teb: 7ea61000 Unfrozen</span><br><span class="line"> <span class="comment"># ChildEBP RetAddr  Args to Child</span></span><br><span class="line">00 3849f5dc 7721eb4e 00000250 00000000 00000000 ntdll_771d0000!NtWaitForSingleObject+0x15</span><br><span class="line">01 3849f640 7721ea32 00000000 00000000 00000000 ntdll_771d0000!RtlpWaitOnCriticalSection+0x13e</span><br><span class="line">02 3849f668 77209aa9 772d20c0 4f52bc5c 7ea63000 ntdll_771d0000!RtlEnterCriticalSection+0x150</span><br><span class="line">03 3849f6fc 7720984c 3849f76c 4f52bde8 00000000 ntdll_771d0000!LdrpInitializeThread+0xc6</span><br><span class="line">04 3849f748 77209879 3849f76c 771d0000 00000000 ntdll_771d0000!_LdrpInitialize+0x1ad</span><br><span class="line">05 3849f758 00000000 3849f76c 771d0000 00000000 ntdll_771d0000!LdrInitializeThunk+0x10</span><br></pre></td></tr></table></figure>
+
+<p>417个线程，大部分线程堆栈都是这样，看起来可能是存在死锁，导致线程不能正常退出</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt;!locks</span><br><span class="line">Scanned 9 critical sections</span><br></pre></td></tr></table></figure>
+
+<p>没有多余信息。查看一下关键段信息</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line">&gt;!cs -s -l -o</span><br><span class="line">DebugInfo          = 0x772d4380</span><br><span class="line">Critical section   = 0x772d20c0 (ntdll_771d0000!LdrpLoaderLock+0x0)</span><br><span class="line">LOCKED</span><br><span class="line">LockCount          = 0x187</span><br><span class="line">WaiterWoken        = No</span><br><span class="line">OwningThread       = 0x00001a0c</span><br><span class="line">RecursionCount     = 0x1</span><br><span class="line">LockSemaphore      = 0x250</span><br><span class="line">SpinCount          = 0x00000000</span><br><span class="line">OwningThread DbgId = ~47s</span><br><span class="line">OwningThread Stack =</span><br><span class="line">	ChildEBP RetAddr  Args to Child              </span><br><span class="line">	184fd76c 7721eb4e 00000ed8 00000000 00000000 ntdll_771d0000!NtWaitForSingleObject+0x15 (FPO: [3,0,0])</span><br><span class="line">	184fd7d0 7721ea32 00000000 00000000 00000000 ntdll_771d0000!RtlpWaitOnCriticalSection+0x13e (FPO: [Non-Fpo])</span><br><span class="line">	184fd7f8 6f882f8e 6f894060 00000000 0dd63b7c ntdll_771d0000!RtlEnterCriticalSection+0x150 (FPO: [Non-Fpo])</span><br><span class="line">	184fd820 6f882dc8 06f640c8 00000000 0dd63b78 bcrypt+0x2f8e</span><br><span class="line">	184fd874 72269a42 184fd894 72269a70 00000000 bcrypt+0x2dc8</span><br><span class="line">	184fd898 7659c167 722a49cc 184fd8c0 721aea6e msxml6!AutoInitSalt::AutoInitSalt+0x1f (FPO: [Non-Fpo]) (CONV: thiscall)</span><br><span class="line">	184fd8a4 721aea6e 721aea9c 721aeb90 00000001 msvcrt!_initterm+0x13 (FPO: [Non-Fpo])</span><br><span class="line">	184fd8c0 72191456 72190000 00000000 00000000 msxml6!_CRT_INIT+0xc3 (FPO: [Non-Fpo]) (CONV: stdcall)</span><br><span class="line">	184fd920 721ae3fe 72190000 00000001 00000000 msxml6!__DllMainCRTStartup+0x9e (FPO: [Non-Fpo]) (CONV: stdcall)</span><br><span class="line">	184fd940 77209344 72190000 00000001 00000000 msxml6!InitDllMain+0x90 (FPO: [Non-Fpo]) (CONV: stdcall)</span><br><span class="line">	184fd960 7720fde1 7219135c 72190000 00000001 ntdll_771d0000!LdrpCallInitRoutine+0x14</span><br><span class="line">	184fda54 7720ea5e 00000000 6f549168 184fdbf8 ntdll_771d0000!LdrpRunInitializeRoutines+0x26f (FPO: [Non-Fpo])</span><br><span class="line">	184fdbc8 7724d39f 184fdc38 184fdbf8 0dee0974 ntdll_771d0000!LdrpLoadDll+0x472 (FPO: [Non-Fpo])</span><br><span class="line">	184fdc04 76a42e0f 00000000 184fdc58 184fdc38 ntdll_771d0000!LdrLoadDll+0xc7 (FPO: [Non-Fpo])</span><br><span class="line">	184fdc4c 75d29c67 00000000 00000000 00002008 KERNELBASE!LoadLibraryExW+0x233 (FPO: [Non-Fpo])</span><br><span class="line">	184fdc68 75d29bea 00000000 184fdce4 00002008 ole32!LoadLibraryWithLogging+0x16 (FPO: [Non-Fpo]) (CONV: stdcall)</span><br><span class="line">	184fdc8c 75d29ad6 184fdce4 184fdcb0 184fdcb4 ole32!CClassCache::CDllPathEntry::LoadDll+0xaf (FPO: [Non-Fpo]) (CONV: stdcall)</span><br><span class="line">	184fdcbc 75d28fde 184fdce4 184fdfcc 184fdcdc ole32!CClassCache::CDllPathEntry::Create_rl+0x37 (FPO: [Non-Fpo]) (CONV: stdcall)</span><br><span class="line">	184fdf08 75d28eb3 00000001 184fdfcc 184fdf38 ole32!CClassCache::CClassEntry::CreateDllClassEntry_rl+0xd4 (FPO: [Non-Fpo]) (CONV: thiscall)</span><br><span class="line">	184fdf50 75d28db9 00000001 071100e8 184fdf7c ole32!CClassCache::GetClassObjectActivator+0x224 (FPO: [Non-Fpo]) (CONV: stdcall)</span><br><span class="line"><span class="variable">$&#123;$ntdllwsym&#125;</span>!RtlpStackTraceDataBase is NULL. Probably the stack traces are not enabled.</span><br><span class="line">-----------------------------------------</span><br><span class="line">DebugInfo          = 0x070be3a8</span><br><span class="line">Critical section   = 0x6f894060 (bcrypt+0x14060)</span><br><span class="line">LOCKED</span><br><span class="line">LockCount          = 0x1</span><br><span class="line">WaiterWoken        = No</span><br><span class="line">OwningThread       = 0x000021e4</span><br><span class="line">RecursionCount     = 0x1</span><br><span class="line">LockSemaphore      = 0xED8</span><br><span class="line">SpinCount          = 0x00000000</span><br><span class="line">OwningThread DbgId = ~18s</span><br><span class="line">OwningThread Stack =</span><br><span class="line">	ChildEBP RetAddr  Args to Child              </span><br><span class="line">	0b80e2bc 7721eb4e 00000250 00000000 00000000 ntdll_771d0000!NtWaitForSingleObject+0x15 (FPO: [3,0,0])</span><br><span class="line">	0b80e320 7721ea32 00000000 00000000 0b80e388 ntdll_771d0000!RtlpWaitOnCriticalSection+0x13e (FPO: [Non-Fpo])</span><br><span class="line">	0b80e348 77200329 772d20c0 7c9ba944 6f88275c ntdll_771d0000!RtlEnterCriticalSection+0x150 (FPO: [Non-Fpo])</span><br><span class="line">	0b80e3e4 77200262 6f840000 0b80e420 00000000 ntdll_771d0000!LdrGetProcedureAddressEx+0x159 (FPO: [Non-Fpo])</span><br><span class="line">	0b80e400 76a41f7c 6f840000 0b80e420 00000000 ntdll_771d0000!LdrGetProcedureAddress+0x18 (FPO: [Non-Fpo])</span><br><span class="line">	0b80e428 6f8826e6 6f840000 6f88275c 0dd7a980 KERNELBASE!GetProcAddress+0x44 (FPO: [Non-Fpo])</span><br><span class="line">	0b80e43c 6f882fbc 6f840000 0dd7a980 00000000 bcrypt+0x26e6</span><br><span class="line">	0b80e470 6f882dc8 0dd7a980 00000000 0dd63c20 bcrypt+0x2fbc</span><br><span class="line">	0b80e4c4 6f8564b4 0b80e4f0 76b6b79c 00000000 bcrypt+0x2dc8</span><br><span class="line">	0b80e4f4 6f856445 00000002 0b80e5b4 0b80e618 bcryptprimitives!CheckSignaturePadding+0x44 (FPO: [Non-Fpo])</span><br><span class="line">	0b80e530 6f886380 0dd7b1b8 0b80e5b4 0b80e618 bcryptprimitives!MSCryptRsaVerifySignature+0x90 (FPO: [Non-Fpo])</span><br><span class="line">	0b80e574 76b8515e 0dc37230 0b80e5b4 0b80e618 bcrypt+0x6380</span><br><span class="line">	0b80e5a8 76b8511a 0dc37230 76b6b79c 0b80e618 crypt32!I_CryptCNGSignAndEncodeHash+0x18d (FPO: [Non-Fpo])</span><br><span class="line">	0b80e5e0 76b84fc5 00000001 0044b478 00000000 crypt32!I_CryptCNGVerifyEncodedSignature+0xba (FPO: [Non-Fpo])</span><br><span class="line">	0b80e668 76b84eb4 76b6bf8c 00000001 0044b478 crypt32!I_CryptCNGVerifyCertificateSignedContent+0x15d (FPO: [Non-Fpo])</span><br><span class="line">	0b80e6d4 76b65db2 00000000 00000001 00000002 crypt32!CryptVerifyCertificateSignatureEx+0x242 (FPO: [Non-Fpo])</span><br><span class="line">	0b80e72c 76b65b7c 0de850b0 0ddb6358 00000000 crypt32!ChainGetSubjectStatus+0x90 (FPO: [Non-Fpo])</span><br><span class="line">	0b80e758 76b655a3 0de850b0 00000000 0ddb6358 crypt32!CCertIssuerList::CreateElement+0x51 (FPO: [Non-Fpo])</span><br><span class="line">	0b80e790 76b694fc 0de850b0 0de85128 07138910 crypt32!CCertIssuerList::AddIssuer+0x87 (FPO: [Non-Fpo])</span><br><span class="line">	0b80e7bc 76b6605d 00000002 0de850b0 0de85128 crypt32!CChainPathObject::FindAndAddIssuersFromCacheByMatchType+0x87 (FPO: [Non-Fpo])</span><br><span class="line"><span class="variable">$&#123;$ntdllwsym&#125;</span>!RtlpStackTraceDataBase is NULL. Probably the stack traces are not enabled.</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>有很多个，但是前两个就可以破案了。</p>
+<p>18号线程：</p>
+<p><code>0b80e348 77200329 772d20c0 7c9ba944 6f88275c ntdll_771d0000!RtlEnterCriticalSection+0x150 (FPO: [Non-Fpo])</code><br>进入了 0x6f894060 关键段，想要访问 0x772d20c0 这个关键段</p>
+<p>47号线程：</p>
+<p><code>184fd7f8 6f882f8e 6f894060 00000000 0dd63b7c ntdll_771d0000!RtlEnterCriticalSection+0x150 (FPO: [Non-Fpo])</code><br>进入了 0x772d20c0 关键段，但是想要进入 0x6f894060 关键段。<strong>造成死锁</strong>。</p>
+<p>再看47号线程这部分，LockCount &#x3D; 0x187 有391个线程因为这个被锁住，跟线程数也差不多对的上，基本可以断定 0x772d20c0 这个关键段不能被正常释放导致。再分析两个线程的堆栈，可以看到都进入了 bcrypt 模块，基本可以判定 微软的 bcrypt 会存在死锁</p>
+<p>去网上搜了一下，果然有人遇上同样的问题<br><a target="_blank" rel="noopener" href="https://social.technet.microsoft.com/Forums/Lync/en-US/dee65a4a-ed42-426b-8540-427d2875154f/excel-365-may-experience-a-deadlock-while-opening-encrypted-spreadsheet?forum=Office2016ITPro">https://social.technet.microsoft.com/Forums/Lync/en-US/dee65a4a-ed42-426b-8540-427d2875154f/excel-365-may-experience-a-deadlock-while-opening-encrypted-spreadsheet?forum=Office2016ITPro</a><br>不是客户端本身代码问题，松了一口气，但是微软这个加密模块会存在死锁，感觉还是有点 emmm… 唔得行</p>
+<h3 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h3><p>一个加密的工具模块，竟然会用到锁，这个设计也是挺迷的。这个问题在 Win7 下出现过，Win10 还没有接到反馈。说到底 dotnet framework 这个设计还是为人所诟病的。运行时不能独立出来，对系统本身依赖太多。首先会因为用户本身的环境有问题，导致软件运行不正常；其次，还有一部分的问题因为用户的环境不同，有些会出问题，有些不会出问题，而且框架没得改。也难怪没有火起来。还好微软及时幡然悔悟，dotnet core 3 终于回归正轨。</p>
+<p>WPF 这套开发效率确实是高，但是面对各种各样用户的系统环境，如果 dotnet 不能让人做到可以自己编译自己改，那就还是存在硬伤的。发现问题但改不动，微软对于框架本身的自信最终还是会害了自己。就看 dotnet 5 能不能有啥大突破了</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>ehnap
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://ehnap.me/2019/04/15/windows-bcrypt-deadlock/" title="bcrypt 死锁探秘">https://ehnap.me/2019/04/15/windows-bcrypt-deadlock/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Windows%E7%BC%96%E7%A8%8B/" rel="tag"># Windows编程</a>
+              <a href="/tags/Windbg/" rel="tag"># Windbg</a>
+              <a href="/tags/%E8%B0%83%E8%AF%95/" rel="tag"># 调试</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/04/05/resolution-dpi-twips/" rel="prev" title="谈谈DPI、分辨率与缇">
+                  <i class="fa fa-angle-left"></i> 谈谈DPI、分辨率与缇
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/04/28/dll-export-function-way/" rel="next" title="DLL 导出符号的两种方式">
+                  DLL 导出符号的两种方式 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">ehnap</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">92k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">5:05</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/ehnap" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ehnap","repo":"ehnap.github.io","client_id":"483d334cd96bc22b4b19","client_secret":"83a8e4a8a19bb5ed328f484588b091067ef40a9f","admin_user":"ehnap","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"bbd3de0af50936464d489a3d603c3fe8"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

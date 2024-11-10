@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/uploads/favicon-16-blog.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/uploads/favicon-32-blog.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/uploads/favicon-16-blog.png">
+  <link rel="mask-icon" href="/uploads/favicon-16-blog.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"ehnap.me","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12,"onmobile":false},"hljswrap":true,"copycode":{"enable":false,"style":null,"show_result":false},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false,"trigger":"auto"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="之前写了一篇 浅谈Qt控件绘制 。之所以叫浅谈是因为调用都是比较表层的调用。其实 Qt 的绘制，可以说用 Qt 的人都有用到，但是对于绘制底层，了解的人并不见得很多。我其实之前也是云山雾罩，从来没有深究过。所以想着知其然还是要知其所以然。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【Qt源码笔记】深谈 Qt 绘制">
+<meta property="og:url" content="https://ehnap.me/2018/12/19/qt-source-paint/index.html">
+<meta property="og:site_name" content="Harper Talk">
+<meta property="og:description" content="之前写了一篇 浅谈Qt控件绘制 。之所以叫浅谈是因为调用都是比较表层的调用。其实 Qt 的绘制，可以说用 Qt 的人都有用到，但是对于绘制底层，了解的人并不见得很多。我其实之前也是云山雾罩，从来没有深究过。所以想着知其然还是要知其所以然。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-12-19T12:23:50.000Z">
+<meta property="article:modified_time" content="2018-12-19T12:23:50.000Z">
+<meta property="article:author" content="ehnap">
+<meta property="article:tag" content="Qt">
+<meta property="article:tag" content="源码分析">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://ehnap.me/2018/12/19/qt-source-paint/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ehnap.me/2018/12/19/qt-source-paint/","path":"2018/12/19/qt-source-paint/","title":"【Qt源码笔记】深谈 Qt 绘制"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>【Qt源码笔记】深谈 Qt 绘制 | Harper Talk</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0LB4K68FT4"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"G-0LB4K68FT4","only_pageview":false,"measure_protocol_api_secret":null}</script>
+  <script src="/js/third-party/analytics/google-analytics.js"></script>
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?4b3abb0db859d505583886941f31bfb1"></script>
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="Harper Talk" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Harper Talk</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">疯言疯语</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li><li class="menu-item menu-item-programming"><a href="/categories/Programming/" rel="section"><i class="code fa-fw"></i>Programming</a></li><li class="menu-item menu-item-it-life"><a href="/categories/IT-Life/" rel="section"><i class="leaf fa-fw"></i>IT-Life</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-commonweal"><a href="/404.html" rel="section"><i class="heartbeat fa-fw"></i>公益 404</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">1.</span> <span class="nav-text">结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%A2%E7%A9%B6%E8%BF%87%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">探究过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%84%8F%E5%A4%96%E6%94%B6%E8%8E%B7"><span class="nav-number">3.</span> <span class="nav-text">意外收获</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%99%84%E6%B3%A8"><span class="nav-number">4.</span> <span class="nav-text">附注</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%8E%E8%AE%B0"><span class="nav-number">5.</span> <span class="nav-text">后记</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ehnap"
+      src="/uploads/touxiang.jpg">
+  <p class="site-author-name" itemprop="name">ehnap</p>
+  <div class="site-description" itemprop="description">人生如水，冷暖自知。</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ehnap" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ehnap" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ehnap@foxmail.com" title="E-Mail → mailto:ehnap@foxmail.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml" rel="noopener me"><i class="rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ehnap.me/2018/12/19/qt-source-paint/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/touxiang.jpg">
+      <meta itemprop="name" content="ehnap">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Harper Talk">
+      <meta itemprop="description" content="人生如水，冷暖自知。">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="【Qt源码笔记】深谈 Qt 绘制 | Harper Talk">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          【Qt源码笔记】深谈 Qt 绘制
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-12-19 20:23:50" itemprop="dateCreated datePublished" datetime="2018-12-19T20:23:50+08:00">2018-12-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Programming/" itemprop="url" rel="index"><span itemprop="name">Programming</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>之前写了一篇 <a href="https://ehnap.me/2018/12/10/qt-source-paint-control/">浅谈Qt控件绘制</a> 。之所以叫浅谈是因为调用都是比较表层的调用。其实 Qt 的绘制，可以说用 Qt 的人都有用到，但是对于绘制底层，了解的人并不见得很多。我其实之前也是云山雾罩，从来没有深究过。所以想着知其然还是要知其所以然。</p>
+<span id="more"></span>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>在 Windows 平台 默认的 Qt 绘制，最终到底层，是直接调用<strong>指令集指令</strong>的，这有别于我最初的猜测，我以为是用 Windows API 。这着实让我吃了一惊。这让我对 Qt 的性能又放心了一些。</p>
+<h2 id="探究过程"><a href="#探究过程" class="headerlink" title="探究过程"></a>探究过程</h2><p>其实研究这个，比其他的更好溯源。附上三段堆栈信息。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">	Qt5Guid.dll!BLEND_SOURCE_OVER_ARGB32_AVX2(unsigned int * dst, const unsigned int * src, const int length) 行 184	C++</span><br><span class="line">	Qt5Guid.dll!qt_blend_argb32_on_argb32_avx2(unsigned char * destPixels, int dbpl, const unsigned char * srcPixels, int sbpl, int w, int h, int const_alpha) 行 253	C++</span><br><span class="line">	Qt5Guid.dll!QRasterPaintEnginePrivate::drawImage(const QPointF &amp; pt, const QImage &amp; img, void(*)(unsigned char *, int, const unsigned char *, int, int, int, int) func, const QRect &amp; clip, int alpha, const QRect &amp; sr) 行 1057	C++</span><br><span class="line">	Qt5Guid.dll!QRasterPaintEngine::drawImage(const QPointF &amp; p, const QImage &amp; img) 行 2250	C++</span><br><span class="line">	Qt5Guid.dll!QRasterPaintEngine::drawPixmap(const QPointF &amp; pos, const QPixmap &amp; pixmap) 行 2128	C++</span><br><span class="line">	Qt5Guid.dll!QPainter::drawPixmap(const QPointF &amp; p, const QPixmap &amp; pm) 行 5079	C++</span><br><span class="line">	Qt5Guid.dll!QPainter::drawPixmap(const QPoint &amp; p, const QPixmap &amp; pm) 行 796	C++</span><br><span class="line"></span><br><span class="line">------------------</span><br><span class="line"></span><br><span class="line">Qt5Guid.dll!alphargbblend_argb32(unsigned int * dst, unsigned int coverage, const QRgba64 &amp; srcLinear, unsigned int src, const QColorProfile * colorProfile) 行 5771	C++</span><br><span class="line">	Qt5Guid.dll!qt_alphargbblit_argb32(QRasterBuffer * rasterBuffer, int x, int y, const QRgba64 &amp; color, const unsigned int * src, int mapWidth, int mapHeight, int srcStride, const QClipData * clip, bool useGammaCorrection) 行 5878	C++</span><br><span class="line">	Qt5Guid.dll!QRasterPaintEngine::alphaPenBlt(const void * src, int bpl, int depth, int rx, int ry, int w, int h, bool useGammaCorrection) 行 2723	C++</span><br><span class="line">	Qt5Guid.dll!QRasterPaintEngine::drawCachedGlyphs(int numGlyphs, const unsigned int * glyphs, const QFixedPoint * positions, QFontEngine * fontEngine) 行 2976	C++</span><br><span class="line">	Qt5Guid.dll!QRasterPaintEngine::drawTextItem(const QPointF &amp; p, const QTextItem &amp; textItem) 行 3183	C++</span><br><span class="line">	Qt5Guid.dll!QPainterPrivate::drawTextItem(const QPointF &amp; p, const QTextItem &amp; _ti, QTextEngine * textEngine) 行 6531	C++</span><br><span class="line">	Qt5Guid.dll!QTextLine::draw(QPainter * p, const QPointF &amp; pos, const QTextLayout::FormatRange * selection) 行 2615	C++</span><br><span class="line">	Qt5Guid.dll!qt_format_text(const QFont &amp; fnt, const QRectF &amp; _r, int tf, const QTextOption * option, const QString &amp; str, QRectF * brect, int tabstops, int * ta, int tabarraylen, QPainter * painter) 行 7702	C++</span><br><span class="line">	Qt5Guid.dll!QPainter::drawText(const QRect &amp; r, int flags, const QString &amp; str, QRect * br) 行 5955	C++</span><br><span class="line"></span><br><span class="line">   -------------------</span><br><span class="line"></span><br><span class="line">Qt5Guid.dll!qt_memfill32(unsigned int * dest, unsigned int value, int count) 行 262	C++</span><br><span class="line">	Qt5Guid.dll!qt_memfill&lt;unsigned int&gt;(unsigned int * dest, unsigned int color, int count) 行 901	C++</span><br><span class="line">	Qt5Guid.dll!blend_color_argb(int count, const QT_FT_Span_ * spans, void * userData) 行 4347	C++</span><br><span class="line">	Qt5Guid.dll!qt_span_fill_clipRect(int count, const QT_FT_Span_ * spans, void * userData) 行 4229	C++</span><br><span class="line">	Qt5Guid.dll!QSpanBuffer::flushSpans() 行 112	C++</span><br><span class="line">	Qt5Guid.dll!QSpanBuffer::~QSpanBuffer() 行 87	C++</span><br><span class="line">	Qt5Guid.dll!QRasterizer::rasterizeLine(const QPointF &amp; a, const QPointF &amp; b, double width, bool squareCap) 行 1191	C++</span><br><span class="line">	Qt5Guid.dll!QRasterPaintEngine::fillRect(const QRectF &amp; r, QSpanData * data) 行 1858	C++</span><br><span class="line">	Qt5Guid.dll!QRasterPaintEngine::fillRect(const QRectF &amp; r, const QBrush &amp; brush) 行 1882	C++</span><br><span class="line">	Qt5Guid.dll!QPainter::fillRect(const QRect &amp; r, const QBrush &amp; brush) 行 6971	C++</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>只要从绘制代码，单步调试即可找到指定地点。不过最终使用的指令集却并不一样。有的用 <strong>avx2</strong> 、有的则是用 <strong>sse2</strong> 。如果想探究指令集部分的使用，需要到源码目录 <strong>qtbase\src\gui\painting</strong> ，根据目录下代码文件名即可知道是哪种指令集，一目了然。</p>
+<p>回过头来再看上边的那些函数调用。其实不难发现，所有的绘制在中间都必然要经过<code>QPaintEngine</code>。<code>QRasterPaintEngine</code>只不过是它的一个派生，这个后边再说。而 <code>QPaintEngine</code> 根据所要绘制的内容，来区分绘制逻辑，比方说涂色采用填充 buffer 、统一刷新的方式；字体绘制要调用字体图元相关绘制逻辑等等。</p>
+<p><em>所有的表层绘制都要经过绘制引擎来向下传递绘制信息。这是 Qt 作为一个高级框架的闪光点，在其他的 Qt 模块也有类似发现，比如控件的绘制上。这样看来 Qt 这个框架能给我们的，除了代码逻辑本身，还有设计。</em></p>
+<h2 id="意外收获"><a href="#意外收获" class="headerlink" title="意外收获"></a>意外收获</h2><p>在整个代码探究的过程，我发现了这样一段代码，可以说是非常惊喜了。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (pd-&gt;<span class="built_in">devType</span>() == QInternal::Pixmap)</span><br><span class="line">    <span class="built_in">static_cast</span>&lt;QPixmap *&gt;(pd)-&gt;<span class="built_in">detach</span>();</span><br><span class="line"><span class="keyword">else</span> <span class="keyword">if</span> (pd-&gt;<span class="built_in">devType</span>() == QInternal::Image)</span><br><span class="line">    <span class="built_in">static_cast</span>&lt;QImage *&gt;(pd)-&gt;<span class="built_in">detach</span>();</span><br><span class="line"></span><br><span class="line">d-&gt;engine = pd-&gt;<span class="built_in">paintEngine</span>();</span><br></pre></td></tr></table></figure>
+<p>这段代码是<code>QPainter::begin()</code>中的代码。当时是在研究<code>QWidget</code>的绘制过程中，走到了这里。只看代码很难体验它的神奇之处。</p>
+<p><code>pd</code> 在前边是 <code>QWidget</code> 的一个指针，当经过这个 <code>if</code> 语句之后，<code>pd</code> 就变成了一个 <code>QImage</code> 指针。这不可谓之不神奇。对于稍微对 Qt 源码有一些理解的同学对 <code>detach()</code> 并不陌生，它本是 Qt 中最常用的 <strong>Copy-on-Write</strong> 的实现。不过经常用于在类的成员方法中调用，今天看到它这种用法着实惊艳到了。至于为什么这种用法可行，这也是一个可研究的点，有时间，将其整理出来。这段代码算是研究绘制过程中的一个小礼物，这也解开了<code>QWidget</code>绘制的本质。至于<code>QWidget</code>的绘制，也是一个很有意思的东西了，以后有机会详细整理一下。</p>
+<h2 id="附注"><a href="#附注" class="headerlink" title="附注"></a>附注</h2><p>之前我说<code>QRasterPaintEngine</code>只是<code>QPaintEngine</code>的派生类。我也说 Windows 平台下默认的 Qt 绘制是使用指令集的。原因就在于默认条件下，绝大部分的<code>QPaintDevice</code>是选择用<code>QRasterPaintEngine</code>的，这里我说绝大部分是因为，我没有完整的看过所有派生自<code>QPaintDevice</code>的类的代码。而选择用何种<code>QPaintEngine</code>具体逻辑可以以<code>QImage</code>为例：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">QPaintEngine *<span class="title">QImage::paintEngine</span><span class="params">()</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!d)</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!d-&gt;paintEngine) &#123;</span><br><span class="line">        QPaintDevice *paintDevice = <span class="built_in">const_cast</span>&lt;QImage *&gt;(<span class="keyword">this</span>);</span><br><span class="line">        QPaintEngine *paintEngine = <span class="number">0</span>;</span><br><span class="line">        QPlatformIntegration *platformIntegration = QGuiApplicationPrivate::<span class="built_in">platformIntegration</span>();</span><br><span class="line">        <span class="keyword">if</span> (platformIntegration)</span><br><span class="line">            paintEngine = platformIntegration-&gt;<span class="built_in">createImagePaintEngine</span>(paintDevice);</span><br><span class="line">        d-&gt;paintEngine = paintEngine ? paintEngine : <span class="keyword">new</span> <span class="built_in">QRasterPaintEngine</span>(paintDevice);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> d-&gt;paintEngine;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>简而言之就是取决于<code>QGuiApplicationPrivate::platformIntegration()</code>的返回值。至于这个调用相关的，那是有关 <strong>QPA</strong> 的范畴了，就不再这篇赘述了。有时间再整理 <strong>QPA</strong> 相关的内容出来。</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>对于 Qt 绘制的深入探究，可以说是受益匪浅，这篇文章只是描述了冰山一角，其实整个流程比这个简要概括要高级的多。从研究 Qt 源码至今，对整个 Qt 项目的感受与评价，已和往日截然不同。而网上大部分人对 Qt 的评价，其实在我看来，无异于盲人摸象。只有对源码稍有了解的人，才知道 Qt 这个项目，对于客户端开发人员的价值。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>ehnap
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://ehnap.me/2018/12/19/qt-source-paint/" title="【Qt源码笔记】深谈 Qt 绘制">https://ehnap.me/2018/12/19/qt-source-paint/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Qt/" rel="tag"># Qt</a>
+              <a href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/" rel="tag"># 源码分析</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/12/10/qt-source-paint-control/" rel="prev" title="【Qt源码笔记】浅谈 Qt 中的控件绘制">
+                  <i class="fa fa-angle-left"></i> 【Qt源码笔记】浅谈 Qt 中的控件绘制
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/12/29/annual-2018/" rel="next" title="2018年度报告">
+                  2018年度报告 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">ehnap</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">92k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">5:05</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/ehnap" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ehnap","repo":"ehnap.github.io","client_id":"483d334cd96bc22b4b19","client_secret":"83a8e4a8a19bb5ed328f484588b091067ef40a9f","admin_user":"ehnap","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"8aff4d45decb55562460aef574a6614c"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>

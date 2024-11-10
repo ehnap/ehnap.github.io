@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 7.0.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/uploads/favicon-16-blog.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/uploads/favicon-32-blog.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/uploads/favicon-16-blog.png">
+  <link rel="mask-icon" href="/uploads/favicon-16-blog.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha256-5eIC48iZUHmSlSUz9XtjRyK2mzQkHScZY1WdMaoz74E=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"ehnap.me","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.21.1","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12,"onmobile":false},"hljswrap":true,"copycode":{"enable":false,"style":null,"show_result":false},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false,"trigger":"auto"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="在客户端开发的过程中免不了要接触的就是像素，屏幕分辨率，这些概念是比较常见的，但很多时候真的就只是用而已，并不知道他们到底是一种什么关系，想起之前做看图的时候，经常就会遇到一些很有意思的图片文件，那个时候就研究了一下这几个概念。近来突然想起，就记录一下。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="谈谈DPI、分辨率与缇">
+<meta property="og:url" content="https://ehnap.me/2019/04/05/resolution-dpi-twips/index.html">
+<meta property="og:site_name" content="Harper Talk">
+<meta property="og:description" content="在客户端开发的过程中免不了要接触的就是像素，屏幕分辨率，这些概念是比较常见的，但很多时候真的就只是用而已，并不知道他们到底是一种什么关系，想起之前做看图的时候，经常就会遇到一些很有意思的图片文件，那个时候就研究了一下这几个概念。近来突然想起，就记录一下。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-04-04T17:37:57.000Z">
+<meta property="article:modified_time" content="2019-04-04T17:37:57.000Z">
+<meta property="article:author" content="ehnap">
+<meta property="article:tag" content="Windows编程">
+<meta property="article:tag" content="DPI">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://ehnap.me/2019/04/05/resolution-dpi-twips/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://ehnap.me/2019/04/05/resolution-dpi-twips/","path":"2019/04/05/resolution-dpi-twips/","title":"谈谈DPI、分辨率与缇"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>谈谈DPI、分辨率与缇 | Harper Talk</title>
+  
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0LB4K68FT4"></script>
+  <script class="next-config" data-name="google_analytics" type="application/json">{"tracking_id":"G-0LB4K68FT4","only_pageview":false,"measure_protocol_api_secret":null}</script>
+  <script src="/js/third-party/analytics/google-analytics.js"></script>
+
+  <script src="/js/third-party/analytics/baidu-analytics.js"></script>
+  <script async src="https://hm.baidu.com/hm.js?4b3abb0db859d505583886941f31bfb1"></script>
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="Harper Talk" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">Harper Talk</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">疯言疯语</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="home fa-fw"></i>首页</a></li><li class="menu-item menu-item-programming"><a href="/categories/Programming/" rel="section"><i class="code fa-fw"></i>Programming</a></li><li class="menu-item menu-item-it-life"><a href="/categories/IT-Life/" rel="section"><i class="leaf fa-fw"></i>IT-Life</a></li><li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-commonweal"><a href="/404.html" rel="section"><i class="heartbeat fa-fw"></i>公益 404</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E8%BE%A8%E7%8E%87"><span class="nav-number">1.1.</span> <span class="nav-text">分辨率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DPI"><span class="nav-number">1.2.</span> <span class="nav-text">DPI</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%87"><span class="nav-number">1.3.</span> <span class="nav-text">缇</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A3%85"><span class="nav-number">1.4.</span> <span class="nav-text">磅</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%BA%9B%E8%AE%A1%E7%AE%97"><span class="nav-number">2.</span> <span class="nav-text">一些计算</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DPI-%E6%9C%89%E4%BB%80%E4%B9%88%E7%94%A8"><span class="nav-number">3.1.</span> <span class="nav-text">DPI 有什么用</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B1%8F%E5%B9%95-DPI"><span class="nav-number">3.1.1.</span> <span class="nav-text">屏幕 DPI</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9B%BE%E7%89%87-DPI"><span class="nav-number">3.1.2.</span> <span class="nav-text">图片 DPI</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ehnap"
+      src="/uploads/touxiang.jpg">
+  <p class="site-author-name" itemprop="name">ehnap</p>
+  <div class="site-description" itemprop="description">人生如水，冷暖自知。</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">62</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ehnap" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ehnap" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ehnap@foxmail.com" title="E-Mail → mailto:ehnap@foxmail.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/atom.xml" title="RSS → &#x2F;atom.xml" rel="noopener me"><i class="rss fa-fw"></i>RSS</a>
+      </span>
+  </div>
+  <div class="cc-license animated" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" class="cc-opacity" rel="noopener" target="_blank"><img src="https://cdnjs.cloudflare.com/ajax/libs/creativecommons-vocabulary/2020.11.3/assets/license_badges/small/by_nc_sa.svg" alt="Creative Commons"></a>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://ehnap.me/2019/04/05/resolution-dpi-twips/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/uploads/touxiang.jpg">
+      <meta itemprop="name" content="ehnap">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Harper Talk">
+      <meta itemprop="description" content="人生如水，冷暖自知。">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="谈谈DPI、分辨率与缇 | Harper Talk">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          谈谈DPI、分辨率与缇
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-04-05 01:37:57" itemprop="dateCreated datePublished" datetime="2019-04-05T01:37:57+08:00">2019-04-05</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Programming/" itemprop="url" rel="index"><span itemprop="name">Programming</span></a>
+        </span>
+    </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.1k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>在客户端开发的过程中免不了要接触的就是像素，屏幕分辨率，这些概念是比较常见的，但很多时候真的就只是用而已，并不知道他们到底是一种什么关系，想起之前做看图的时候，经常就会遇到一些很有意思的图片文件，那个时候就研究了一下这几个概念。近来突然想起，就记录一下。</p>
+<span id="more"></span>
+<h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><h3 id="分辨率"><a href="#分辨率" class="headerlink" title="分辨率"></a>分辨率</h3><p>先说这个最常见的概念，就是指有多少个像素，如果是屏幕分辨率，就是指屏幕有多少个像素。只不过通常提起屏幕分辨率都以宽*高的方式表达，类似 1366*768、1920*768 等等。</p>
+<h3 id="DPI"><a href="#DPI" class="headerlink" title="DPI"></a>DPI</h3><p>DPI (Dots Per Inch，每英寸点数)，这个点可以理解为像素数，即每英寸像素数。</p>
+<h3 id="缇"><a href="#缇" class="headerlink" title="缇"></a>缇</h3><p>这个概念，对于很多人是陌生的，但是实际上在做 WPS 的时候，会经常遇到一些有关于它的换算。其实它就是一种度量单位。1缇 &#x3D; 0.05磅</p>
+<h3 id="磅"><a href="#磅" class="headerlink" title="磅"></a>磅</h3><p>一种度量单位。1磅 &#x3D; 1&#x2F;72英寸</p>
+<h2 id="一些计算"><a href="#一些计算" class="headerlink" title="一些计算"></a>一些计算</h2><blockquote>
+<p>1英寸 &#x3D; 72磅 &#x3D; 1440缇</p>
+</blockquote>
+<p>由这个转换可知，以上三个单位的长度是确定的，这也就知道为什么在办公文档中会选择用磅而不是像素来描述字号，因为……需要打印，打印的时候时一定要知道这个东西确切的长度。</p>
+<p>这就引发了下一个问题，屏幕上的1像素打印出来到底是多大。可以注意到的是像素本身是不跟现实中的物理量有什么联系的，但是有一个东西是有联系的，那就是 DPI，将英寸和像素联系起来了。</p>
+<p>那 DPI 这个值又是怎么来的呢？很多人只知道 Windows 下 DPI 一般是96， 打印是300 。但是并不知道这个值怎么来的。这就要看像素怎么来的，对于电脑来说，屏幕分辨率就是像素信息。所以就把屏幕分辨率也串起来了</p>
+<p>这里以一个 23寸，屏幕分辨率为 1920*1080的显示器 为例：sqrt(1920^2^+1080^2^) &#x2F; 23 ≈ 95.77 ≈ 96。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><strong>缇</strong>是一个绝对的概念，无论在地球上的哪个地方，缇的长度都是绝对的；<strong>DPI</strong> 是一个可以自己设置的，每英寸的像素数；<strong>屏幕分辨率</strong>也是可以自己设置的，代表了屏幕上的像素点数。</p>
+<h3 id="DPI-有什么用"><a href="#DPI-有什么用" class="headerlink" title="DPI 有什么用"></a>DPI 有什么用</h3><h4 id="屏幕-DPI"><a href="#屏幕-DPI" class="headerlink" title="屏幕 DPI"></a>屏幕 DPI</h4><p>对于客户端开发来说，在系统层面，是无法准确知道用户的电脑屏幕是多大的，对于客户端，只能感知屏幕有多少个像素。那如果只是根据像素做开发，用户买的高分屏就全都炸了，一个15寸的笔记本，但是是2k屏幕，在用户的机器上就会看你的软件无比的小，因为同样屏幕的大小，高分屏的像素更多。而你的软件是固定像素大小的。</p>
+<p>但是如果你根据上边的公式算一下，其实不难算出，这种高分屏的 DPI 是要比 96 大的，如果细心观察，高分屏默认选择的 DPI 也不是标准 DPI 而是放大的，其实就是因为它比 96 要大而已，因为有这个值，就可以对用户电脑屏幕的状况做到心里有数了。通常做法是，看是 96 的多少倍，对自己的软件内部元素做相应倍数放大，这就是高分屏适配的一般做法</p>
+<h4 id="图片-DPI"><a href="#图片-DPI" class="headerlink" title="图片 DPI"></a>图片 DPI</h4><p>而对于某个图片设置 DPI 的作用则是控制图片打印出来的大小。对于在电脑上显示图片的大多数软件来说，修改 DPI 是不影响图片在软件里看到的大小的，因为它的像素没有变。但是相同像素大小的图片，不同 DPI，它们打印出来大小就截然不同了，因为在这里就要根据 DPI 换算它们的实际大小，才能准确的打印在纸上，这就跟 DPI 有关了。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          
+
+<div class="post-copyright">
+<ul>
+  <li class="post-copyright-author">
+      <strong>本文作者： </strong>ehnap
+  </li>
+  <li class="post-copyright-link">
+      <strong>本文链接：</strong>
+      <a href="https://ehnap.me/2019/04/05/resolution-dpi-twips/" title="谈谈DPI、分辨率与缇">https://ehnap.me/2019/04/05/resolution-dpi-twips/</a>
+  </li>
+  <li class="post-copyright-license">
+      <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+          <div class="post-tags">
+              <a href="/tags/Windows%E7%BC%96%E7%A8%8B/" rel="tag"># Windows编程</a>
+              <a href="/tags/DPI/" rel="tag"># DPI</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/03/23/it-life-tenement/" rel="prev" title="跑断腿的租房过程杂谈">
+                  <i class="fa fa-angle-left"></i> 跑断腿的租房过程杂谈
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/04/15/windows-bcrypt-deadlock/" rel="next" title="bcrypt 死锁探秘">
+                  bcrypt 死锁探秘 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    <div class="comments gitalk-container"></div>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">ehnap</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>站点总字数：</span>
+    <span title="站点总字数">92k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>站点阅读时长 &asymp;</span>
+    <span title="站点阅读时长">5:05</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+
+  <a href="https://github.com/ehnap" class="github-corner" title="在 GitHub 上关注我" aria-label="在 GitHub 上关注我" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"ehnap","repo":"ehnap.github.io","client_id":"483d334cd96bc22b4b19","client_secret":"83a8e4a8a19bb5ed328f484588b091067ef40a9f","admin_user":"ehnap","distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":"zh-CN","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"77170727101e2005e2904662ae1cc1a7"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
+
+</body>
+</html>
